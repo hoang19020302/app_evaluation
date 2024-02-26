@@ -24,11 +24,12 @@ class LoginController extends Controller
         // Tìm kiếm người dùng trong danh sách
         foreach ($users as $user) {
             if ($user['token'] === $token) {
-                return response()->json(['success' => 'User logged in successfully'], 200);
+                return response()->json(['success' => 'User logged in successfully', 'token' => $token, 'id' => $user['id']], 200);
             } elseif ($user['token'] !== $token && $user['email'] === $email && $user['password'] === $password) {
-                $user['token'] = Str::random(60);
+                $newtoken = Str::random(60);
+                $user['token'] = $newtoken;
                 Cache::put('users_info', $users, $expiration);
-                return response()->json(['success' => 'User logged in successfully'], 200);
+                return response()->json(['success' => 'User logged in successfully', 'token' => $newtoken, 'id' => $user['id']], 200);
             } else {
                 return response()->json(['error' => 'Login failed'], 401);
             }

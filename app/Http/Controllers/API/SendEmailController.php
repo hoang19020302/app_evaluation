@@ -34,7 +34,7 @@ class SendEmailController extends Controller
 
         $emailContent = '';
         $evaluationLink = '';
-        $brokenLink = 'http://127.0.0.1:8000/broken-link';
+        $brokenLink = 'http://127.0.0.1:8000/error';
         //Kiem tra loại 
         if ($classify === 'character') {
             $emailContent = 'Tham gia vào bài đánh giá tính cách. ';

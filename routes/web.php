@@ -23,4 +23,7 @@ Route::get('/', function () {
 //api-status
 Route::get('/api-status', [ApiController::class, 'index']);
 
+//error
+Route::get('/error', [ErrorWebController::class, 'error']);
+
 
