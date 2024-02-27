@@ -21,7 +21,7 @@ class RegisterController extends Controller
         $id = Str::uuid().substr(0, 8);
         // Thoi gian 30 ngay
         $expiration = Carbon::now()->addDays(30)->diffInSeconds();
-        // Tạo token Sanctum mới cho người dùng
+        // Tạo token cho người dùng
         $token = Str::random(60);
 
         // Lưu token và thông tin người dùng vào cache
@@ -51,6 +51,6 @@ class RegisterController extends Controller
         // Lưu danh sách người dùng mới vào cache
         Cache::put('users_info', $users, $expiration);
 
-        return response()->json(['success' => 'User registered successfully', 'continue' => 'Please log in again', 'token' => $token, 'id' => $id], 200);
+        return response()->json(['success' => 'User registered successfully', 'token' => $token, 'id' => $id], 200);
     }
 }

@@ -19,9 +19,9 @@ class LogoutController extends Controller
         // Lấy list user từ cache
         $users = Cache::get('users_info', []);
         // Tìm kiếm người dùng trong danh sách
-        foreach ($users as $user) {
+        foreach ($users as &$user) {
             if ($user['token'] === $token) {
-                $user['token'] = '';
+                $user['token'] = '__NO_TOKEN__';
                 break;
             }
         }

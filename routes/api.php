@@ -10,6 +10,9 @@ use App\Http\Controllers\API\SendEmailController;
 use App\Http\Controllers\API\GroupEmailController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\LogoutController;
+//use App\Http\Controllers\API\CheckInfoController;
+use App\Http\Controllers\API\ChangePasswordController;
+
 
 
 /*
@@ -39,6 +42,10 @@ Route::middleware(['csrf_cache', 'web'])->group(function () {
     Route::post('/login', [LoginController::class, 'loginUser']);
     // logout
     Route::post('/logout', [LogoutController::class, 'logoutUser']);
+    // change-password
+    Route::post('/change-password', [ChangePasswordController::class, 'changePassword']);
+    // check-info
+    //Route::post('/check-info', [CheckInfoController::class, 'checkInfo']);
     // list-email
     Route::get('/list-email', [ListEmailController::class, 'getEmails']);
     //list-user

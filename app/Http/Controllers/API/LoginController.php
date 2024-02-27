@@ -22,17 +22,26 @@ class LoginController extends Controller
         // Lấy list user từ cache
         $users = Cache::get('users_info', []);
         // Tìm kiếm người dùng trong danh sách
-        foreach ($users as $user) {
+        $foundUser = null;
+        foreach ($users as &$user) {
             if ($user['token'] === $token) {
-                return response()->json(['success' => 'User logged in successfully', 'token' => $token, 'id' => $user['id']], 200);
-            } elseif ($user['token'] !== $token && $user['email'] === $email && $user['password'] === $password) {
-                $newtoken = Str::random(60);
-                $user['token'] = $newtoken;
-                Cache::put('users_info', $users, $expiration);
-                return response()->json(['success' => 'User logged in successfully', 'token' => $newtoken, 'id' => $user['id']], 200);
-            } else {
-                return response()->json(['error' => 'Login failed'], 401);
+                $foundUser = $user;
+                break;
             }
         }
+
+    if ($foundUser) {
+        return response()->json(['success' => 'User logged in successfully', 'token' => $token, 'id' => $foundUser['id']], 200);
+    } else {
+        foreach ($users as &$user) {
+            if ($user['email'] === $email && $user['password'] === $password) {
+                $newToken = Str::random(60);
+                $user['token'] = $newToken;
+                Cache::put('users_info', $users, $expiration);
+                return response()->json(['success' => 'User logged in successfully', 'token' => $newToken, 'id' => $user['id']], 200);
+            }
+        }
+        return response()->json(['error' => 'Login failed'], 401);
+    }
     }
 }

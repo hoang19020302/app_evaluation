@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\CheckFormController;
+use App\Http\Controllers\CheckInfoController;
 
 
 /*
@@ -23,7 +25,22 @@ Route::get('/', function () {
 //api-status
 Route::get('/api-status', [ApiController::class, 'index']);
 
+//check-info
+Route::post('/check-info', [CheckInfoController::class, 'checkInfo']);
+
+//failed-login
+Route::get('/failed-login', [CheckFormController::class, 'failedLogin']);
+
 //error
-Route::get('/error', [ErrorWebController::class, 'error']);
+Route::get('/error', [CheckFormController::class, 'error']);
+
+//spirit
+Route::get('/spirit', [CheckFormController::class, 'spirit']);
+
+//character
+Route::get('/character', [CheckFormController::class, 'character']);
+
+//failed-login
+Route::get('/failed-login', [CheckFormController::class, 'failedLogin']);
 
 
