@@ -18,7 +18,7 @@ class ListUserController extends Controller
         return response()->json(['error' => 'No users found'], 404);
     }
 
-    // GET /list-user/{id}
+    // GET /user/{id}
     public function getUser($id) {
         // Kiểm tra xem dữ liệu từ cache có tồn tại không
         if (Cache::has('users_info')) {

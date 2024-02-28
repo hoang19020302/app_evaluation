@@ -50,7 +50,13 @@ class RegisterController extends Controller
 
         // Lưu danh sách người dùng mới vào cache
         Cache::put('users_info', $users, $expiration);
-
-        return response()->json(['success' => 'User registered successfully', 'token' => $token, 'name' => $name], 200);
+        // response trả về
+        $responseData = [
+            'success' => 'User registered successfully',
+            'token' => $token,
+            'id' => $id,
+            'name' => $name,
+        ];
+        return response()->json($responseData, 200);
     }
 }

@@ -51,7 +51,7 @@ Route::middleware(['csrf_cache', 'web'])->group(function () {
     //list-user
     Route::get('/list-user', [ListUserController::class, 'getUsers']);
     //user-info
-    Route::get('/user-info/{id}', [ListUserController::class, 'getUser']);
+    Route::get('/user/{id}', [ListUserController::class, 'getUser']);
     //group email
     Route::get('/group-email', [GroupEmailController::class, 'getGroupEmail']);
     
@@ -64,6 +64,6 @@ Route::middleware(['web', 'csrf_cache'])->group(function () {
 
 //group token as sanctum
 Route::middleware(['cache_token_auth'])->group(function () {
-
+    // api/*
 });
 

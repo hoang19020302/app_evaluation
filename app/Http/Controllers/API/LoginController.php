@@ -35,10 +35,19 @@ class LoginController extends Controller
     } else {
         foreach ($users as &$user) {
             if ($user['email'] === $email && $user['password'] === $password) {
+                // Tạo token mới cho người dùng
                 $newToken = Str::random(60);
+                // Cập nhật token mới
                 $user['token'] = $newToken;
-                Cache::put('users_info', $users, $expiration);
-                return response()->json(['success' => 'User logged in successfully', 'token' => $newToken, 'name' => $user['name']], 200);
+                Cache::put('users_info', $users, $expiration); //có thể  ko cần
+                // response trả về
+                $responseData = [
+                    'success' => 'User logged in successfully',
+                    'token' => $user['token'],
+                    'id' => $user['id'],
+                    'name' => $user['name'],
+                ];
+                return response()->json($responseData, 200);
             }
         }
         return response()->json(['error' => 'Login failed'], 401);
