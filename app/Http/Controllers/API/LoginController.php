@@ -31,14 +31,14 @@ class LoginController extends Controller
         }
 
     if ($foundUser) {
-        return response()->json(['success' => 'User logged in successfully', 'token' => $token, 'id' => $foundUser['id']], 200);
+        return response()->json(['success' => 'User logged in successfully', 'token' => $token, 'name' => $foundUser['name']], 200);
     } else {
         foreach ($users as &$user) {
             if ($user['email'] === $email && $user['password'] === $password) {
                 $newToken = Str::random(60);
                 $user['token'] = $newToken;
                 Cache::put('users_info', $users, $expiration);
-                return response()->json(['success' => 'User logged in successfully', 'token' => $newToken, 'id' => $user['id']], 200);
+                return response()->json(['success' => 'User logged in successfully', 'token' => $newToken, 'name' => $user['name']], 200);
             }
         }
         return response()->json(['error' => 'Login failed'], 401);
