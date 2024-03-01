@@ -32,13 +32,13 @@ Route::post('/check-info', [CheckInfoController::class, 'checkInfo']);
 Route::get('/failed-login', [CheckFormController::class, 'failedLogin']);
 
 //error
-Route::get('/error', [CheckFormController::class, 'error']);
+Route::get('/error', [CheckFormController::class, 'error'])->name('error');
 
 //spirit
-Route::get('/spirit', [CheckFormController::class, 'spirit']);
+Route::get('/spirit', [CheckFormController::class, 'spirit'])->name('spirit');
 
 //character
-Route::get('/character', [CheckFormController::class, 'character']);
+Route::get('/character', [CheckFormController::class, 'character'])->name('character');
 
 //failed-login
 Route::get('/failed-login', [CheckFormController::class, 'failedLogin']);

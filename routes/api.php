@@ -30,37 +30,35 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-//group token csrf
-Route::middleware(['csrf_cache', 'web'])->group(function () {
-    // csrf
-    Route::get('/csrf-token', [YourController::class, 'getCsrfToken']);
-    // token
-    Route::get('/tokens', [YourController::class, 'getToken']);
-    // register
-    Route::post('/register', [RegisterController::class, 'registerUser']);
-    // login
-    Route::post('/login', [LoginController::class, 'loginUser']);
-    // logout
-    Route::post('/logout', [LogoutController::class, 'logoutUser']);
-    // change-password
-    Route::post('/change-password', [ChangePasswordController::class, 'changePassword']);
-    // check-info
-    //Route::post('/check-info', [CheckInfoController::class, 'checkInfo']);
-    // list-email
-    Route::get('/list-email', [ListEmailController::class, 'getEmails']);
-    //list-user
-    Route::get('/list-user', [ListUserController::class, 'getUsers']);
-    //user-info
-    Route::get('/user/{id}', [ListUserController::class, 'getUser']);
-    //group email
-    Route::get('/group-email', [GroupEmailController::class, 'getGroupEmail']);
+// Định nghĩa các tuyến đường API ở đây
     
-});
-Route::middleware(['web', 'csrf_cache'])->group(function () {
-    // Định nghĩa các tuyến đường API ở đây
-    //send email
-    Route::post('/send-email', [SendEmailController::class, 'sendEvaluationInvitations']);
-});
+// csrf
+Route::get('/csrf-token', [YourController::class, 'getCsrfToken']);
+// token
+Route::get('/tokens', [YourController::class, 'getToken']);
+// register
+Route::post('/register', [RegisterController::class, 'registerUser']);
+// login
+Route::post('/login', [LoginController::class, 'loginUser']);
+// logout
+Route::post('/logout', [LogoutController::class, 'logoutUser']);
+// change-password
+Route::post('/change-password', [ChangePasswordController::class, 'changePassword']);
+// check-info
+//Route::post('/check-info', [CheckInfoController::class, 'checkInfo']);
+// list-email
+Route::get('/list-email', [ListEmailController::class, 'getEmails']);
+//list-user
+Route::get('/list-user', [ListUserController::class, 'getUsers']);
+//user-info
+Route::get('/user/{id}', [ListUserController::class, 'getUser']);
+//group email
+Route::get('/group-email', [GroupEmailController::class, 'getGroupEmail']);
+//send email
+Route::post('/send-email', [SendEmailController::class, 'sendEvaluationInvitations']);
+
+
+
 
 //group token as sanctum
 Route::middleware(['cache_token_auth'])->group(function () {

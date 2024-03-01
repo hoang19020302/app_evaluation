@@ -38,15 +38,13 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\VerifyCsrfTokenAndCache::class,
         ],
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\VerifyCsrfTokenAndCache::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
+            //'remove_session_and_cookie',
             //\App\Http\Middleware\CacheTokenAuthMiddleware::class,
         ],
     ];
@@ -68,7 +66,8 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'csrf_cache' => \App\Http\Middleware\VerifyCsrfTokenAndCache::class,
+        //'csrf_cache' => \App\Http\Middleware\VerifyCsrfTokenAndCache::class,
         'cache_token_auth' => \App\Http\Middleware\CacheTokenAuthMiddleware::class,
+        'remove_session_and_cookie' => \App\Http\Middleware\RemoveSessionAndCookie::class,
     ];
 }

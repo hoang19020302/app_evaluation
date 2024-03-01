@@ -8,58 +8,51 @@ use Carbon\Carbon;
 use App\Mail\EvaluationInvitation;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\URL;
 
 class SendEmailController extends Controller
 {
     //POST group-email
     public function sendEvaluationInvitations(Request $request) {
-        $expiration = Carbon::now()->addDays(30)->diffInSeconds();
+       // Tạo token có thời gian hết hạn 30 phút
+    $expiration = now()->addMinutes(30);
 
-        // Lấy dữ liệu từ request
-        $classify = $request->input('classify');
-        $emailString = $request->input('emails');
-        // tách chuỗi từ request
-        //$emails = explode(';', $emailString);
-        // Lưu dữ liệu vào cache
-        $group = [
-            'classify' => $classify,
-            'emails' => $emailString,
-        ];
-        $groupInfo = Cache::get('group_info', []);
-        $groupInfo[] = $group;
-        Cache::put('group_info', $groupInfo, $expiration);
+    // Tách chuỗi email thành mảng các địa chỉ email
+    $emails = explode(';', $request->input('emails'));
 
-        // tách chuỗi từ request
-        $emails = explode(';', $emailString);
-
-        $emailContent = '';
-        $evaluationLink = '';
-        $brokenLink = 'http://127.0.0.1:8000/error';
-        //Kiem tra loại 
-        if ($classify === 'character') {
-            $emailContent = 'Tham gia vào bài đánh giá tính cách. ';
-            $evaluationLink = 'http://127.0.0.1:8000/character';
-        } elseif ($classify === 'spirit') {
-            $emailContent = 'Tham gia lại bài đánh giá tinh thần. ';
-            $evaluationLink = 'http://127.0.0.1:8000/spirit';
-        }
+    // Lặp qua mỗi địa chỉ email và gán một token riêng cho mỗi email
+    foreach ($emails as $email) {
+        $token = Crypt::encryptString($expiration);
         
-        $expirationTime = Carbon::now()->addMinutes(30);
-        // Tạo session cho đường link trong khoảng thời gian 30 phút
-        $request->session()->put('evaluation_link', $evaluationLink);
-        $request->session()->put('expiration_time', $expirationTime);
-        $request->session()->save();
+        // Lưu token và thông tin cần thiết vào cache
+        Cache::put($token, [
+            'classify' => $request->input('classify'),
+            'email' => $email,
+            'expiration' => $expiration,
+        ], $expiration);
 
-        // Gửi email
-        // Kiểm tra nếu session tồn tại và thời gian hết hạn chưa tới
-        if ($request->session()->has('evaluation_link') && $request->session()->get('expiration_time') > Carbon::now()) {
-            $evaluationLink = $request->session()->get('evaluation_link');
-            //Gửi link tới từng email trong mảng
-            foreach ($emails as $email) {
-                Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expirationTime, $brokenLink));
-            }
-            return response()->json(['success' => 'Email sent'], 200);
+        // Tạo URL chứa token
+        $evaluationLink = route($request->input('classify'), ['token' => $token]);
+
+        // Gửi email với liên kết
+        $emailContent = $this->getEmailContent($request->input('classify'));
+        $brokenLink = route('error');
+        $this->sendEmail($email, $emailContent, $evaluationLink, $expiration, $brokenLink);
+    }
+
+    return response()->json(['success' => 'Emails sent successfully'], 200);
+    }
+
+    private function getEmailContent($classify) {
+        if ($classify === 'character') {
+            return 'Tham gia vào bài đánh giá tính cách. ';
+        } elseif ($classify === 'spirit') {
+            return 'Tham gia lại bài đánh giá tinh thần. ';
         }
-        return response()->json(['error' => 'Link expired'], 400);
+    }
+    
+    private function sendEmail($email, $emailContent, $evaluationLink, $expiration, $brokenLink) {
+        Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration, $brokenLink));
     }
 }
