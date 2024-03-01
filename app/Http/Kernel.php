@@ -45,7 +45,6 @@ class Kernel extends HttpKernel
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             //'remove_session_and_cookie',
-            //\App\Http\Middleware\CacheTokenAuthMiddleware::class,
         ],
     ];
 
@@ -69,5 +68,6 @@ class Kernel extends HttpKernel
         //'csrf_cache' => \App\Http\Middleware\VerifyCsrfTokenAndCache::class,
         'cache_token_auth' => \App\Http\Middleware\CacheTokenAuthMiddleware::class,
         'remove_session_and_cookie' => \App\Http\Middleware\RemoveSessionAndCookie::class,
+        'check_token_expiration' => \App\Http\Middleware\CheckTokenExpiration::class,
     ];
 }

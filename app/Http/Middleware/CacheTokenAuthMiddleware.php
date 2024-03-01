@@ -17,8 +17,15 @@ class CacheTokenAuthMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
+        // Kiểm tra phương thức của yêu cầu
+        $method = $request->method();
+        // Kiểm tra xem token được gửi từ phía client có tồn tại không
+        if ($method === 'GET') {
+            $token = $request->query('token');
+        } else {
+            $token = $request->bearerToken();
+        }
        // Kiểm tra xem token được gửi từ phía client có tồn tại trong cache không
-       $token = $request->bearerToken();
        $userInfoList = Cache::get('users_info');
 
        if (!$token || !$userInfoList) {

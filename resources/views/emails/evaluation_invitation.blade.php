@@ -8,7 +8,7 @@
     <p>Bạn vui lòng truy cập vào đường link sau để tham gia bài đánh giá:</p>
     <!-- Liên kết -->
     <a href="{{ $evaluationLink }}">{{ $content }}</a>
-   
+    <p>Link hết hạn vào lúc {{ $expirationTime }}</p>
     <p>Trân trọng.</p>
 </body>
 </html>

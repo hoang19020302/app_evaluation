@@ -1,5 +1,5 @@
 mail/EvaluationInvitation.php  
-Middleware/CacheTokenAuthMiddleware.php  
+Middleware/CacheTokenAuthMiddleware.php, Middleware/CheckTokenExpiration.php, Middleware/Cors.php  
 app/http/Controller/API  
 resource/views/check  
 .env(smtp, database-navicat)  

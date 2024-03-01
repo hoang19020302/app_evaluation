@@ -36,4 +36,12 @@ class VerifyCsrfToken extends Middleware
         // Token is valid
         return true;
     }
+    // public function handle($request, Closure $next)
+    // {
+    //     if (!$this->tokensMatch($request)) {
+    //         abort(403, 'CSRF token mismatch');
+    //     }
+
+    //     return $next($request);
+    // }
 }

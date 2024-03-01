@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\CheckFormController;
-use App\Http\Controllers\CheckInfoController;
 
 
 /*
@@ -25,22 +24,17 @@ Route::get('/', function () {
 //api-status
 Route::get('/api-status', [ApiController::class, 'index']);
 
-//check-info
-Route::post('/check-info', [CheckInfoController::class, 'checkInfo']);
-
 //failed-login
-Route::get('/failed-login', [CheckFormController::class, 'failedLogin']);
+Route::get('/failed-login', [CheckFormController::class, 'failedLogin'])->name('failed-login');
 
 //error
 Route::get('/error', [CheckFormController::class, 'error'])->name('error');
 
 //spirit
-Route::get('/spirit', [CheckFormController::class, 'spirit'])->name('spirit');
+Route::get('/spirit', [CheckFormController::class, 'spirit'])->name('spirit')->middleware('check_token_expiration');
 
 //character
-Route::get('/character', [CheckFormController::class, 'character'])->name('character');
+Route::get('/character', [CheckFormController::class, 'character'])->name('character')->middleware('check_token_expiration');
 
-//failed-login
-Route::get('/failed-login', [CheckFormController::class, 'failedLogin']);
 
 

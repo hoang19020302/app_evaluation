@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 class CheckInfoController extends Controller
 {
@@ -18,17 +19,10 @@ class CheckInfoController extends Controller
         // So sánh dữ liệu với dữ liệu trong cache
         if ($this->compareWithDataInCache($email, $password)) {
             // Trả về phản hồi thành công
-            if($classify === 'spirit') {
-                return redirect('http://172.23.176.1:5500/src/form/spirit.html');
-                //return response()->json(['message' => true]);
-            } elseif($classify === 'character') {
-                return redirect('http://172.23.176.1:5500/src/form/character.html');
-                //return response()->json(['message' => true]);
-            }
-            
+            return response()->json(['message' => true, 'classify' => $classify]);
         } else {
             // Trả về phản hồi không thành công
-            return redirect('http://127.0.0.1:8000/failed-login');
+            return redirect(route('failed-login'));
             //return response()->json(['failed' => false]);
         }
     }
