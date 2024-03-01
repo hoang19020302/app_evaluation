@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use App\Mail\EvaluationInvitation;
@@ -15,16 +16,13 @@ class SendEmailController extends Controller
 {
     //POST group-email
     public function sendEvaluationInvitations(Request $request) {
-       // Tạo token có thời gian hết hạn 30 phút
-    $expiration = now()->addMinutes(30);
-
-    // Tách chuỗi email thành mảng các địa chỉ email
-    $emails = explode(';', $request->input('emails'));
-
-    // Lặp qua mỗi địa chỉ email và gán một token riêng cho mỗi email
-    foreach ($emails as $email) {
+        // Tạo token có thời gian hết hạn 30 phút
+        $expiration = now()->addMinutes(30);
         $token = Crypt::encryptString($expiration);
-        
+
+        // Tách chuỗi email thành mảng các địa chỉ email
+        $emails = explode(';', $request->input('emails'));
+
         // Lưu token và thông tin cần thiết vào cache
         Cache::put($token, [
             'classify' => $request->input('classify'),
@@ -36,12 +34,10 @@ class SendEmailController extends Controller
         $evaluationLink = route($request->input('classify'), ['token' => $token]);
 
         // Gửi email với liên kết
-        $emailContent = $this->getEmailContent($request->input('classify'));
-        $brokenLink = route('error');
-        $this->sendEmail($email, $emailContent, $evaluationLink, $expiration, $brokenLink);
-    }
+        $emailContent = $this->getEmailContent($request->input('classify'));  //self::
+        $this->sendEmail($emails, $emailContent, $evaluationLink, $expiration); //self::
 
-    return response()->json(['success' => 'Emails sent successfully'], 200);
+        return response()->json(['success' => 'Emails sent successfully'], 200);
     }
 
     private function getEmailContent($classify) {
@@ -52,7 +48,14 @@ class SendEmailController extends Controller
         }
     }
     
-    private function sendEmail($email, $emailContent, $evaluationLink, $expiration, $brokenLink) {
-        Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration, $brokenLink));
+    private function sendEmail($emails, $emailContent, $evaluationLink, $expiration) {
+        try {
+            // Gửi email
+            foreach ($emails as $email) {
+                Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration));
+            }
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to send email.'], 500);
+        }
     }
 }
