@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use App\Mail\EvaluationInvitation;
@@ -55,6 +56,10 @@ class SendEmailController extends Controller
     }
 
     private function sendEmail($email, $emailContent, $evaluationLink, $expiration) {
-        Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration));
+        try {
+            Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration));
+        } catch(Exception $e) {
+            return response()->json(['error' => 'Failed to send email'], 500);
+        }
     }
 }
