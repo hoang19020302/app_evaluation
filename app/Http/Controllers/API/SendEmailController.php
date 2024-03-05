@@ -27,17 +27,17 @@ class SendEmailController extends Controller
         // Lặp qua mỗi địa chỉ email và gán một token riêng cho mỗi email
         foreach ($emails as $email) {
             // Tạo token với expiration
-            $token = Crypt::encryptString($expiration);
+            $token = Crypt::encryptString($expiration . '_' . $email);
             
             // Lưu token và thông tin cần thiết vào cache
             Cache::put($token, [
-                'classify' => $request->input('classify'),
-                'email' => $email,
+                //'userId' => $request->input('userId'),
+                'classify' => $request->input('classify'),// Phân loại bài đánh giá tuỳ thuộc giá trị gửi bên fe
                 'expiration' => $expiration,
             ], $expiration);
 
-            // Tạo URL chứa token
-            $evaluationLink = route($request->input('classify'), ['token' => $token]);
+            // Tạo URL chứa token, thay thế tham số đầu tiên băng link phù hợp VD: 'http://localhost:5500/check?token=' . $token
+            $evaluationLink = route('check.token', ['token' => $token]); 
 
             // Gửi email với liên kết
             $emailContent = $this->getEmailContent($request->input('classify'));

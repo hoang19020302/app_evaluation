@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\CheckFormController;
+use App\Http\Controllers\CheckTokenController;
+use App\Http\Controllers\Auth\GoogleController;
+
 
 
 /*
@@ -18,8 +21,12 @@ use App\Http\Controllers\CheckFormController;
 */
 
 Route::get('/', function () {
-    return redirect('http://172.23.176.1:5500/page.html');
+    return view('welcome');
 });
+
+Route::get('/home', function() {
+    return view('home');
+})->name('home');
 
 //api-status
 Route::get('/api-status', [ApiController::class, 'index']);
@@ -30,11 +37,20 @@ Route::get('/failed-login', [CheckFormController::class, 'failedLogin'])->name('
 //error
 Route::get('/error', [CheckFormController::class, 'error'])->name('error');
 
-//spirit
-Route::get('/spirit', [CheckFormController::class, 'spirit'])->name('spirit')->middleware('check_token_expiration');
+//check-token?token=
+Route::get('/check-token', [CheckTokenController::class, 'checkToken'])->name('check.token');
 
-//character
-Route::get('/character', [CheckFormController::class, 'character'])->name('character')->middleware('check_token_expiration');
+// auth/register
+Route::get('/auth/register', [GoogleController::class, 'redirectToGoogleForRegister'])->name('google.register');
+
+// auth/login
+Route::get('/auth/login', [GoogleController::class, 'redirectToGoogleForLogin'])->name('google.login');
+
+// auth/forgot-password
+Route::get('/auth/forgot-password', [GoogleController::class, 'forgotPasswordGoogle'])->name('google.forgot.password');
+
+// auth/google/callback
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 
 
