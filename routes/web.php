@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Controllers\CheckFormController;
 use App\Http\Controllers\CheckTokenController;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Auth\NotifyGoogleController;
 
 
 
@@ -28,6 +29,15 @@ Route::get('/home', function() {
     return view('home');
 })->name('home');
 
+Route::get('/no-internet', function() {
+    return view('googles.no-internet');
+})->name('no.internet');
+Route::get('/notify/login', [NotifyGoogleController::class, 'notifyLogin'])->name('notify.login');
+
+Route::get('/notify/register', [NotifyGoogleController::class, 'notifyRegister'])->name('notify.register');
+
+Route::get('/notify/forgot-password', [NotifyGoogleController::class, 'notifyForgotPassword'])->name('notify.forgot-password');
+
 //api-status
 Route::get('/api-status', [ApiController::class, 'index']);
 
@@ -41,13 +51,13 @@ Route::get('/error', [CheckFormController::class, 'error'])->name('error');
 Route::get('/check-token', [CheckTokenController::class, 'checkToken'])->name('check.token');
 
 // auth/register
-Route::get('/auth/register', [GoogleController::class, 'redirectToGoogleForRegister'])->name('google.register');
+Route::get('/auth/register', [GoogleController::class, 'redirectToGoogleForRegister'])->name('google.register')->middleware('check.internet');
 
 // auth/login
-Route::get('/auth/login', [GoogleController::class, 'redirectToGoogleForLogin'])->name('google.login');
+Route::get('/auth/login', [GoogleController::class, 'redirectToGoogleForLogin'])->name('google.login')->middleware('check.internet');
 
 // auth/forgot-password
-Route::get('/auth/forgot-password', [GoogleController::class, 'forgotPasswordGoogle'])->name('google.forgot.password');
+Route::get('/auth/forgot-password', [GoogleController::class, 'forgotPasswordGoogle'])->name('google.forgot.password')->middleware('check.internet');
 
 // auth/google/callback
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
