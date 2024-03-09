@@ -96,8 +96,8 @@ class GoogleController extends Controller
         switch ($state) {
             case 'register':
                 $userData = $this->handleRegistration();
-                //return redirect()->route('notify.register');
-                return redirect()->route('home')->with(['state' => $state] + $userData);
+                return redirect()->route('notify.register')->with(['state' => $state, 'title' => 'Thành công!', 'message' => 'Đăng ký thành công', 'success' => 'alert-success', 'url' => route('home')]);
+                //return redirect()->route('home')->with(['state' => $state] + $userData);
                 break;
             case 'login':
                 $userData = $this->handleLogin();
@@ -111,7 +111,7 @@ class GoogleController extends Controller
                 return redirect()->route('home')->with(['state' => $state] + $userData);
                 break;
             default:
-                return redirect()->route('error');
+                return redirect()->route('home')->with(['url' => route('welcome')]);
         }
     }
 }
