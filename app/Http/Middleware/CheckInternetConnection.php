@@ -18,14 +18,14 @@ class CheckInternetConnection
     {
         if (!$this->isConnectedToInternet()) {
             // Nếu không có kết nối internet, chuyển hướng người dùng đến trang thông báo lỗi hoặc trang khác
-            return redirect()->route('no.internet');
+            return redirect()->route('no.internet')->with('message', 'Bạn vui lòng kiểm tra lại kết nối Internet!');
         }
 
         return $next($request);
     }
     private function isConnectedToInternet() {
         $url = 'https://www.google.com';
-        $timeout = 7; // Thời gian chờ tối đa (giây)
+        $timeout = 10; // Thời gian chờ tối đa (giây)
     
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);

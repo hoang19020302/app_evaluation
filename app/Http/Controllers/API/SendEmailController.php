@@ -4,13 +4,13 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use Exception;
-use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use App\Mail\EvaluationInvitation;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Enums\ServiceStatus;
 
 
 class SendEmailController extends Controller
@@ -22,36 +22,29 @@ class SendEmailController extends Controller
         $expiration = now()->addMinutes(30);
 
         // Tách chuỗi email thành mảng các địa chỉ email
-        $emails = explode(';', $request->input('emails'));
-
+        $emails = preg_split("/[;\\\n]+/", $request->input('emails'));
+       //$uniqueEmails = array_unique($emails); // Loại bỏ các email trùng lặp
         // Lặp qua mỗi địa chỉ email và gán một token riêng cho mỗi email
         foreach ($emails as $email) {
             // Tạo token với expiration
             $token = Crypt::encryptString($expiration . '_' . $email);
-            
-            // Lưu token và thông tin cần thiết vào cache
-            Cache::put($token, [
-                //'userId' => $request->input('userId'),
-                'classify' => $request->input('classify'),// Phân loại bài đánh giá tuỳ thuộc giá trị gửi bên fe
-                'expiration' => $expiration,
-            ], $expiration);
 
             // Tạo URL chứa token, thay thế tham số đầu tiên băng link phù hợp VD: 'http://localhost:5500/check?token=' . $token
-            $evaluationLink = route('check.token', ['token' => $token]); 
+            $evaluationLink = route('check.token', ['token' => $token, 'personality' => $request->input('personality')]); 
 
             // Gửi email với liên kết
-            $emailContent = $this->getEmailContent($request->input('classify'));
+            $emailContent = $this->getEmailContent($request->input('personality'));
             $this->sendEmail($email, $emailContent, $evaluationLink, $expiration);
         }
-
-        return response()->json(['success' => 'Emails sent successfully'], 200);
+       
+        return response()->json(['status' => ServiceStatus::Success, 'success' => 'Các email đã được gửi thư thành công!']);
     }
 
-    private function getEmailContent($classify) {
-        if ($classify === 'character') {
+    private function getEmailContent($personality) {
+        if ($personality === 'character') {
             return 'Tham gia vào bài đánh giá tính cách. ';
-        } elseif ($classify === 'spirit') {
-            return 'Tham gia lại bài đánh giá tinh thần. ';
+        } elseif ($personality === 'mentality') {
+            return 'Tham gia lại bài đánh giá tâm lý. ';
         }
     }
 
@@ -59,7 +52,7 @@ class SendEmailController extends Controller
         try {
             Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration));
         } catch(Exception $e) {
-            return response()->json(['error' => 'Failed to send email'], 500);
+            return response()->json(['status'=>ServiceStatus::Error, 'error' => 'Failed to send email']);
         }
     }
 }

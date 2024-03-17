@@ -7,18 +7,12 @@ use Illuminate\Http\Request;
 
 class NotifyGoogleController extends Controller
 {
-    //GET notify/login
-    function notifyLogin() {
-        return view('googles.login');
+    //GET notify/{state}
+    function notifyStatus() {
+        return view('googles.handle_notify');
     }
-
-    //GET notify/register
-    function notifyRegister() {
-        return view('googles.register');
-    }
-
-    //GET notify/forgot-password
-    function notifyForgotPassword() {
-        return view('googles.forgot-password');
+    //GET no-internet
+    function noInternet() {
+        return view('googles.no_internet');
     }
 }

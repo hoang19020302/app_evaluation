@@ -7,6 +7,7 @@ use App\Http\Controllers\CheckFormController;
 use App\Http\Controllers\CheckTokenController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\NotifyGoogleController;
+use App\Http\Controllers\Auth\FacebookController;
 
 
 
@@ -29,14 +30,8 @@ Route::get('/home', function() {
     return view('home');
 })->name('home');
 
-Route::get('/no-internet', function() {
-    return view('googles.no-internet');
-})->name('no.internet');
-Route::get('/notify/login', [NotifyGoogleController::class, 'notifyLogin'])->name('notify.login');
-
-Route::get('/notify/register', [NotifyGoogleController::class, 'notifyRegister'])->name('notify.register');
-
-Route::get('/notify/forgot-password', [NotifyGoogleController::class, 'notifyForgotPassword'])->name('notify.forgot-password');
+Route::get('/no-internet', [NotifyGoogleController::class, 'noInternet'])->name('no.internet');
+Route::get('/notify/{state}', [NotifyGoogleController::class, 'notifyStatus'])->name('handle.notify');
 
 //api-status
 Route::get('/api-status', [ApiController::class, 'index']);
@@ -64,3 +59,11 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 
 
 
+// auth/register
+Route::get('/auth/facebook/register', [FacebookController::class, 'redirectToFacebookForRegister'])->name('facebook.register')->middleware('check.internet');
+
+// auth/login
+Route::get('/auth/facebook/login', [FacebookController::class, 'redirectToFacebookForLogin'])->name('facebook.login')->middleware('check.internet');
+
+// auth/Facebook/callback
+Route::get('/auth/facebook/callback', [FacebookController::class, 'handleFacebookCallback']);
