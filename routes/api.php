@@ -50,7 +50,7 @@ Route::post('/login', [LoginController::class, 'loginUser']);
     // change-password
     Route::post('/change-password', [ChangePasswordController::class, 'changePassword']);
     // list-email
-    Route::get('/list-email', [ListEmailController::class, 'getEmails']);
+    Route::post('/list-email', [ListEmailController::class, 'getEmails']);
     //list-user
     Route::get('/list-user', [ListUserController::class, 'getUsers']);
     //user-info

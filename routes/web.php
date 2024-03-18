@@ -65,5 +65,8 @@ Route::get('/auth/facebook/register', [FacebookController::class, 'redirectToFac
 // auth/login
 Route::get('/auth/facebook/login', [FacebookController::class, 'redirectToFacebookForLogin'])->name('facebook.login')->middleware('check.internet');
 
+// auth/forgot-password
+Route::get('/auth/facebook/forgot-password', [FacebookController::class, 'forgotPasswordFacebook'])->name('facebook.forgot.password')->middleware('check.internet');
+
 // auth/Facebook/callback
 Route::get('/auth/facebook/callback', [FacebookController::class, 'handleFacebookCallback']);

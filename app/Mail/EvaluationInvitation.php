@@ -19,12 +19,18 @@ class EvaluationInvitation extends Mailable
     public $content;
     public $evaluationLink;
     public $expirationTime;
+    public $group;
+    public $name;
+    public $brokenLink;
 
-    public function __construct($content, $evaluationLink, $expirationTime)
+    public function __construct($content, $evaluationLink, $expirationTime, $group, $name, $brokenLink)
     {
         $this->content = $content;
         $this->evaluationLink = $evaluationLink;
         $this->expirationTime = $expirationTime;
+        $this->group = $group;
+        $this->name = $name;
+        $this->brokenLink = $brokenLink;
     }
 
     public function build()
@@ -35,6 +41,9 @@ class EvaluationInvitation extends Mailable
                         'content' => $this->content,
                         'evaluationLink' => $this->evaluationLink,
                         'expirationTime' => $this->expirationTime,
+                        'group' => $this->group,
+                        'name' => $this->name,
+                        'brokenLink' => $this->brokenLink
                     ]);
     }
 }

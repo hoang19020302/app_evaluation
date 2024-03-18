@@ -8,7 +8,7 @@ class CheckFormController extends Controller
 {
     //GET erorr
     public function error() {
-        return view('check.error');
+        return view('check.error', ['status' => 404,'message' => 'Không tìm thấy trang tai khoan chua dang ký']);
     }
 
     // GET spirit

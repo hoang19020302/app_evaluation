@@ -3,23 +3,41 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Exception;
+use Carbon\Carbon;
+use App\Mail\EvaluationInvitation;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
+use App\Enums\ServiceStatus;
+
 
 class ListEmailController extends Controller
 {
-    //GET /list-email
-    public function getEmails() {
-        $users = Cache::get('users_info', []);
-        
-        $emails = Cache::get('emails', []);
-        foreach ($users as $user) {
-            $emails[] = $user['email'];
-        }
-        if ($emails) {
-            return response()->json(['emails' => $emails]);
-        }
-        return response()->json(['error' => 'No users found'], 404);
+    //GET /list-ema
+    public function getEmails(Request $request) {
+        $userId = DB::table('user')->where('UserName', $request->input('email'))->value('UserID');
+        $uuid = Str::uuid();
+            DB::table('groupinformation')
+            ->insert(['GroupInformationID'=>$uuid,
+                    'UserID'=>$userId,
+                    'QuestionBankID'=>$request->questionBankID,
+                    'GroupName'=> $request->groupName,
+                    'InvitedEmails'=>$request->invitedEmails,
+                    'CreatedDate'=>Carbon::now()]);
+
+            $groupInformation = DB::table('groupinformation')
+            ->select('GroupInformationID',
+                    'UserID',
+                    'QuestionBankID',
+                    'GroupName',
+                    'InvitedEmails')
+            ->where('GroupInformationID', $uuid)
+            ->first();
+
+            return response()->json(['status'=>ServiceStatus::Success, 'data'=>$groupInformation]);
     }
 
 }
