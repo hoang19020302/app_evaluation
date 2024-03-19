@@ -19,31 +19,25 @@ class EvaluationInvitation extends Mailable
     public $content;
     public $evaluationLink;
     public $expirationTime;
-    public $group;
     public $name;
-    public $brokenLink;
 
-    public function __construct($content, $evaluationLink, $expirationTime, $group, $name, $brokenLink)
+    public function __construct($content, $evaluationLink, $expirationTime, $name)
     {
         $this->content = $content;
         $this->evaluationLink = $evaluationLink;
         $this->expirationTime = $expirationTime;
-        $this->group = $group;
         $this->name = $name;
-        $this->brokenLink = $brokenLink;
     }
 
     public function build()
     {
         return $this->view('emails.evaluation_invitation')
-                    ->subject('Tham gia bài đánh giá')
+                    ->subject('Tham gia bài test')
                     ->with([
                         'content' => $this->content,
                         'evaluationLink' => $this->evaluationLink,
                         'expirationTime' => $this->expirationTime,
-                        'group' => $this->group,
                         'name' => $this->name,
-                        'brokenLink' => $this->brokenLink
                     ]);
     }
 }

@@ -45,22 +45,14 @@ Route::get('/error', [CheckFormController::class, 'error'])->name('error');
 //check-token?token=
 Route::get('/check-token', [CheckTokenController::class, 'checkToken'])->name('check.token');
 
-// auth/register
-Route::get('/auth/register', [GoogleController::class, 'redirectToGoogleForRegister'])->name('google.register')->middleware('check.internet');
-
 // auth/login
-Route::get('/auth/login', [GoogleController::class, 'redirectToGoogleForLogin'])->name('google.login')->middleware('check.internet');
+Route::get('/auth/google/login', [GoogleController::class, 'redirectToGoogleForLogin'])->name('google.login')->middleware('check.internet');
 
 // auth/forgot-password
-Route::get('/auth/forgot-password', [GoogleController::class, 'forgotPasswordGoogle'])->name('google.forgot.password')->middleware('check.internet');
+Route::get('/auth/google/forgot-password', [GoogleController::class, 'forgotPasswordGoogle'])->name('google.forgot.password')->middleware('check.internet');
 
 // auth/google/callback
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-
-
-
-// auth/register
-Route::get('/auth/facebook/register', [FacebookController::class, 'redirectToFacebookForRegister'])->name('facebook.register')->middleware('check.internet');
 
 // auth/login
 Route::get('/auth/facebook/login', [FacebookController::class, 'redirectToFacebookForLogin'])->name('facebook.login')->middleware('check.internet');

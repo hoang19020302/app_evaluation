@@ -32,7 +32,7 @@ class UserInformation extends Mailable
     public function build()
     {
         return $this->view('emails.user_information')
-                    ->subject('Thông tin tài khoản đăng ký bằng google')
+                    ->subject('Thông tin tài khoản đăng nhập')
                     ->with([
                         'userName' => $this->userName,
                         'fullName' => $this->fullName,

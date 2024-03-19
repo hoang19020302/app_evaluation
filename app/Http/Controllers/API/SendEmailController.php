@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ServiceStatus;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use Swift_TransportException;
 
 
 class SendEmailController extends Controller
@@ -47,56 +47,50 @@ class SendEmailController extends Controller
             }
         }
 
-        //Lấy ra QuestionBankID
-        $questionBankID = DB::table('groupinformation')
-                            ->where('GroupInformationID', $selectedGroupInformationID)
-                            ->value('QuestionBankID');
-
         // Tạo thời gian hết hạn 30 phút
         $expiration = Carbon::now()->addMinutes(30);
         // Tách chuỗi email thành mảng các địa chỉ email
         $invitedEmails = explode(';', $invitedEmailsFormatted);
         $invitedEmails = array_filter(array_unique($invitedEmails));
+        // Tạo token với expiration và groupInformationID
+        //$token = Crypt::encryptString($expiration . '_' . $selectedGroupInformationID);
+        $questionBankID = DB::table('groupinformation')
+                            ->where('GroupInformationID', $selectedGroupInformationID)
+                            ->value('QuestionBankID');
+
         // Lặp qua mỗi địa chỉ email và gán một token riêng cho mỗi email
-        $brokenLink = route('error');
         foreach ($invitedEmails as $email) {
             //Lấy fullname tuong ung voi email
             $name = DB::table('user')->where('UserName', $email)->value('FullName');
-            // Tạo  URL dựa trên questionBankID và groupInformationID
-            $evaluationLink = 'https://tomatch.me/' . $selectedGroupInformationID . '/' . $questionBankID;
-
+            // Tạo  URL chứa token để kiểm tra thời gian sống của  link
+            $evaluationLink = 'http://localhost:3000/' . 'group-test/' . $selectedGroupInformationID . '/test' . '/' . $questionBankID;
             // Gửi email với liên kết
             $emailContent = $this->getEmailContent($request->input('personality'));
-            $this->sendEmail($email, $emailContent, $evaluationLink, $expiration, $groupName, $name, $brokenLink);
+            $this->sendEmail($email, $emailContent, $evaluationLink, $expiration, $name);
         }
-       
-        return response()->json(['status' => ServiceStatus::Success, 'success' => 'Các email đã được gửi thư thành công!']);
+        
+        return response()->json(['status' => ServiceStatus::Success, 'success' => 'Emails sent successfully!']);
     }
 
     private function getEmailContent($personality) {
         if ($personality === 'character') {
-            return 'Tham gia vào bài đánh giá tính cách. ';
+            return 'Tham gia vào bài test tính cách. ';
         } elseif ($personality === 'mentality') {
-            return 'Tham gia lại bài đánh giá tâm lý. ';
+            return 'Tham gia lại bài test tâm lý. ';
         }
     }
 
-    private function sendEmail($email, $emailContent, $evaluationLink, $expiration, $groupName, $name, $brokenLink) {
-        $timeout = 11;
-        $emailSent = false; 
-    
+    private function sendEmail($email, $emailContent, $evaluationLink, $expiration, $name) {
+        $invalidEmails = [];
         try {
-            // Thực hiện gửi email và retry trong trường hợp timeout
-            retry(3, function () use ($email, $emailContent, $evaluationLink, $expiration, $groupName, $name, $brokenLink, &$emailSent) {
-                if (!$emailSent) {
-                    Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration, $groupName, $name, $brokenLink));
-                    $emailSent = true; // Đánh dấu email đã được gửi thành công
-                }
-            }, $timeout * 1000);
+            // Thực hiện gửi email 
+            Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration, $name));
+        } catch (Swift_TransportException $e) {
+            $invalidEmails[] = ['email' => $email, 'message' => $e->getMessage()];
         } catch (Exception $e) {
-            if (!$emailSent) {
-                throw new HttpResponseException(response()->json(['status'=>ServiceStatus::Error, 'error' => 'Failed to send email. Server timed out.']));
-            }
+            return response()->json(['status' => ServiceStatus::Error, 'error' => $e->getMessage()]);
         }
+        // Trả về danh sách các địa chỉ email không hợp lệ
+        return response()->json(['status' => ServiceStatus::Fail, 'invalid_emails' => $invalidEmails]);
     }
 }

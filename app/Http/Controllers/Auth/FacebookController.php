@@ -19,13 +19,6 @@ use stdClass;
 
 class FacebookController extends Controller
 {
-    //GET auth/facebook/register
-    public function redirectToFacebookForRegister() {
-        return Socialite::driver('facebook')
-            ->with(['state' => 'register', 'display' => 'touch'])//'prompt' => 'select_account', 'access_type' => 'offline', hd: 'vnu.edu.vn',
-            ->redirect();
-    }
-
     // GET auth/facebook/login
     public function redirectToFacebookForLogin() {
         return Socialite::driver('facebook')
@@ -52,52 +45,6 @@ class FacebookController extends Controller
         //$accessToken = $facebookUser->token;
 
         switch ($state) {
-            // Khi user đăng ký bằng facebook
-            case 'register':
-                // Kiem tra user đã tồn tại trong csdl chưa.
-                $user = DB::table('user')
-                        ->select('UserID')
-                        ->where('UserName', $email)
-                        ->first();
-                if ($user) {
-                    return redirect()->route('handle.notify', ['state' => $state, 'idFb' => $recipientId])->with([
-                        'state' => $state,
-                        'title' => 'Info!',
-                        'message' => 'Tài khoản Facebook này đã tồn tại. Vui lòng sử dụng tài khoản khác để đăng ký.',
-                        'modifier' => 'alert-info', 
-                        'url' => route('welcome'),
-                    ]);
-                }
-                //Lưu thông tin user mới vào csdl
-                $appPassword = Str::random(6);
-                DB::table('user')
-                  ->insert(['UserID'=>Str::uuid(),
-                            'UserName'=> $email,
-                            'FullName'=> $name,
-                            'Password'=> Hash::make($appPassword),
-                            'DateOfBirth'=> $birthday,
-                            'CreatedDate'=>Carbon::now()]);
-                // Lấy ra thông tin  user vừa tạo
-                $newUser = DB::table('user')->where('UserName', $email)->first();
-                // Kiểm tra xem user đc tạo chưa
-                if ($newUser) {
-                    // Gui email cho người dùng
-                    Mail::to($email)->send(new UserInformation($newUser->UserName, $newUser->FullName, $appPassword, $newUser->CreatedDate));
-                    // Đăng nhập người dùng mới và tạo phiên
-                    $expire_time = Carbon::now()->addMinutes(Config::get('session.lifetime'));
-                    session()->regenerate();
-                    session()->put('expire_time', $expire_time);
-                    Auth::loginUsingId($newUser->UserID);
-                    return redirect()->route('handle.notify', ['state' => $state, 'idFb' => $recipientId])->with([
-                        'state' => $state,
-                        'title' => 'Success!',
-                        'message' => 'Đăng ký tài khoản thành công!Chúng tôi sẽ gửi thông tin đăng ký vào email Facebook của bạn bao gồm một mật khẩu ngẫu nhiên được tạo trong trường hợp bạn muốn đăng nhập vào tomatch.me mà không dùng Facebook.',
-                        'modifier' => 'alert-success', 
-                        'url' => route('home'),
-                        'sessionId' => session()->getId(),
-                    ]);
-                }
-                break;
             // Khi user đăng nhập bằng facebook
             case 'login':
                 $user = DB::table('user')
@@ -119,14 +66,36 @@ class FacebookController extends Controller
                         'sessionId' => session()->getId(),
                     ]);
                 } else {
-                    return redirect()->route('handle.notify', ['state' => $state, 'idFb' => $recipientId])->with([
-                        'state' => $state,
-                        'title' => 'Warning!',
-                        'message' => 'Tài khoản Facebook này chưa được đăng ký. Vui lòng đăng ký để tiếp tục.',
-                        'modifier' => 'alert-warning', 
-                        'url' => route('welcome'),
-                    ]);
-                } 
+                    //Lưu thông tin user mới vào csdl
+                    $appPassword = Str::random(6);
+                    DB::table('user')
+                    ->insert(['UserID'=>Str::uuid(),
+                                'UserName'=> $email,
+                                'FullName'=> $name,
+                                'Password'=> Hash::make($appPassword),
+                                'DateOfBirth'=> $birthday,
+                                'CreatedDate'=>Carbon::now()]);
+                    // Lấy ra thông tin  user vừa tạo
+                    $newUser = DB::table('user')->where('UserName', $email)->first();
+                    // Kiểm tra xem user đc tạo chưa
+                    if ($newUser) {
+                        // Gui email cho người dùng
+                        Mail::to($email)->send(new UserInformation($newUser->UserName, $newUser->FullName, $appPassword, $newUser->CreatedDate));
+                        // Đăng nhập người dùng mới và tạo phiên
+                        $expire_time = Carbon::now()->addMinutes(Config::get('session.lifetime'));
+                        session()->regenerate();
+                        session()->put('expire_time', $expire_time);
+                        Auth::loginUsingId($newUser->UserID);
+                        return redirect()->route('handle.notify', ['state' => $state, 'idFb' => $recipientId])->with([
+                            'state' => $state,
+                            'title' => 'Success!',
+                            'message' => 'Đăng nhập người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào email tài khoản Facebook của bạn.Vui lòng kiểm tra email để xem chi tiết.',
+                            'modifier' => 'alert-success', 
+                            'url' => route('home'),
+                            'sessionId' => session()->getId(),
+                        ]);
+                    }
+                }
                 break;
             // Khi người dùng quên mật khẩu
             case 'forgot-password':
