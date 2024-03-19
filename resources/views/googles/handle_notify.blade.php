@@ -27,13 +27,15 @@
         @php
             $url = session('url');
             $sessionId = session('sessionId');
+            $userId = session('userId');
         @endphp
         
         @if($sessionId)
             document.cookie = "sessionId={{ $sessionId }}; path=/";
+            document.cookie = "userId={{ $userId }}; path=/";
         @endif
         setTimeout(function() {
-            window.location.href = "{{ $url }}";
+            window.location.href = "{{ $url }}";//"{{ $url }}?{{ $sessionId }}&{{ $userId }}";
         }, 5000);
     @else
         setTimeout(function() {

@@ -82,6 +82,7 @@ class GoogleController extends Controller
                         'modifier' => 'alert-success', 
                         'url' => 'http://localhost:3000/personal-results',
                         'sessionId' => session()->getId(),
+                        'userId' => $user->UserID,
                     ]);
                 } else {
                     //Lưu thông tin user mới vào csdl
@@ -129,6 +130,7 @@ class GoogleController extends Controller
                                 'modifier' => 'alert-success', 
                                 'url' => 'http://localhost:3000/personal-results',
                                 'sessionId' => session()->getId(),
+                                'userId' => $newUser->UserID,
                             ]);
                     }
                 } 
