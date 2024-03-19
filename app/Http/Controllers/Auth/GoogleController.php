@@ -54,16 +54,15 @@ class GoogleController extends Controller
                     session()->regenerate();
                     session()->put('expire_time', $expire_time);
                     $message = 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!!!';
-                    //Auth::loginUsingId($user->UserID);
-                    return response()->json(['status' => ServiceStatus::Success, 'email' => $email, 'userID' => $user->UserID, 'redirectUrl' => 'http://127.0.0.1:5500/home', 'message' => $message]);
-                    // return redirect()->route('handle.notify', ['state' => $state])->with([
-                    //     'state' => $state,
-                    //     'title' => 'Success!',
-                    //     'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
-                    //     'modifier' => 'alert-success', 
-                    //     'url' => route('home'),
-                    //     'sessionId' => session()->getId(),
-                    // ]);
+                    Auth::loginUsingId($user->UserID);
+                    return redirect()->route('handle.notify', ['state' => $state])->with([
+                        'state' => $state,
+                        'title' => 'Success!',
+                        'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
+                        'modifier' => 'alert-success', 
+                        'url' => 'http://localhost:3000/personal-results',
+                        'sessionId' => session()->getId(),
+                    ]);
                 } else {
                     //Lưu thông tin user mới vào csdl
                     $appPassword = Str::random(6);
@@ -90,7 +89,7 @@ class GoogleController extends Controller
                                 'title' => 'Success!',
                                 'message' => 'Đăng nhập với người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào gmail của bạn.Vui lòng kiểm tra gmail để xem chi tiết.',
                                 'modifier' => 'alert-success', 
-                                'url' => route('home'),
+                                'url' => 'http://localhost:3000/personal-results',
                                 'sessionId' => session()->getId(),
                             ]);
                     }
@@ -116,7 +115,7 @@ class GoogleController extends Controller
                         'title' => 'Success!',
                         'message' => 'Mật khẩu của bạn đã được tạo mới. Vui lòng kiểm tra gmail để lấy mật khẩu và đăng nhập lại vào tomatch.me.',
                         'modifier' => 'alert-success', 
-                        'url' => route('welcome'),
+                        'url' => 'http://localhost:3000/',
                     ]);
                     } else {
                         return redirect()->route('handle.notify', ['state' => $state])->with([
@@ -124,7 +123,7 @@ class GoogleController extends Controller
                             'title' => 'Warning!',
                             'message' => 'Tài khoản Google này chưa được đăng ký!',
                             'modifier' => 'alert-warning', 
-                            'url' => route('welcome'),
+                            'url' => 'http://localhost:3000',
                         ]);
                     }
                 break;

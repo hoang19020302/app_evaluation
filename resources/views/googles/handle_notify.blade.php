@@ -13,11 +13,11 @@
 @else
 <title>Lỗi!</title>
 <div class="alert alert-danger" role="alert" id="custom-alert">
-    <a type="button" class="close" aria-label="Close" href="http://127.0.0.1:5500/page.html">
+    <a type="button" class="close" aria-label="Close" href="http://localhost:3000">
         <span aria-hidden="true">&times;</span>
     </a>
      <h4 class="alert-heading text-center">Lỗi!</h4>
-     <p class="mb-0 text-center">Bạn vui lòng truy cập vào <a href="http://127.0.0.1:5500/page.html" class="alert-link">tomatch.me</a> để tiếp tục.</p>
+     <p class="mb-0 text-center">Bạn vui lòng truy cập vào <a href="http://localhost:3000" class="alert-link">tomatch.me</a> để tiếp tục.</p>
 </div>
 @endif
 
@@ -37,7 +37,7 @@
         }, 5000);
     @else
         setTimeout(function() {
-            window.location.href = "http://127.0.0.1:5500/page.html";
+            window.location.href = "http://localhost:3000";
         }, 5000);
     @endif
 </script>
