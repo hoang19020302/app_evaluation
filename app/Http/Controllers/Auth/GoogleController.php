@@ -63,7 +63,15 @@ class GoogleController extends Controller
                     $userData->type = 'existing';
                     $userData->sessionID = session()->getId();
                     $userData->createdDate = $user->CreatedDate;
-                    Cache::put('user_' . $userData->method . '_' . $userData->type, $userData, 120);
+
+                    $cacheKey = $userData->method . '_' . $userData->type . '_user';
+                    if (Cache::has($cacheKey)) {
+                        $usersInfo = Cache::get($cacheKey);
+                        $usersInfo[] = $userData;
+                        Cache::put($cacheKey, $usersInfo, 120);
+                    } else {
+                        Cache::put($cacheKey, [$userData], 120);
+                    }
 
                     Auth::loginUsingId($user->UserID);
                 
@@ -103,7 +111,15 @@ class GoogleController extends Controller
                         $userData->type = 'new';
                         $userData->sessionID = session()->getId();
                         $userData->createdDate = $newUser->CreatedDate;
-                        Cache::put('user_' . $userData->method . '_' . $userData->type, $userData, 120);
+
+                        $cacheKey = $userData->method . '_' . $userData->type . '_user';
+                        if (Cache::has($cacheKey)) {
+                            $usersInfo = Cache::get($cacheKey);
+                            $usersInfo[] = $userData;
+                            Cache::put($cacheKey, $usersInfo, 120);
+                        } else {
+                            Cache::put($cacheKey, [$userData], 120);
+                        }
 
                         Auth::loginUsingId($newUser->UserID);
                         return redirect()->route('handle.notify', ['state' => $state])->with([
@@ -129,7 +145,7 @@ class GoogleController extends Controller
                     $updatedTime = Carbon::now();
                     DB::table('user')
                       ->where('UserName', $email)
-                      ->update(['Password'=> Hash::make($newAppPassword)]);
+                      ->update(['Password'=> Hash::make($newAppPassword), 'ModifiedDate' => $updatedTime]);
                     // Gui email cho người dùng
                     Mail::to($email)->send(new UserNewPassword($user->FullName, $newAppPassword, $updatedTime));
                     return redirect()->route('handle.notify', ['state' => $state])->with([

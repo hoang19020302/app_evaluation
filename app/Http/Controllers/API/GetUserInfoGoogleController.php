@@ -16,8 +16,8 @@ class GetUserInfoGoogleController extends Controller
         $method = $request->query('method');
         $type = $request->query('type');
         if ($method === 'google') {
-            $userInfo = Cache::get('user_' . $method . '_' . $type);
-            Cache::forget('user_' . $method . '_' . $type);
+            $userInfo = Cache::get($method . '_' . $type . '_user');
+            Cache::forget($method . '_' . $type . '_user');
             return response()->json(['status' => ServiceStatus::Success, 'userInfo' => $userInfo]);
         }
     }

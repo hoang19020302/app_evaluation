@@ -13,6 +13,7 @@ use App\Http\Controllers\API\LogoutController;
 use App\Http\Controllers\API\CheckInfoController;
 use App\Http\Controllers\API\ChangePasswordController;
 use App\Http\Controllers\API\GetUserInfoGoogleController;
+use App\Http\Controllers\API\ResetPasswordController;
 
 
 
@@ -26,6 +27,18 @@ use App\Http\Controllers\API\GetUserInfoGoogleController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+//POST /api/email-auth
+Route::post('/email-auth', [ResetPasswordController::class, 'emailAuth']);
+
+// POST /api/verify
+Route::post('/verify-code', [ResetPasswordController::class, 'verifyCode']);
+
+// POST /api/repeat-code
+Route::post('/repeat-code', [ResetPasswordController::class, 'repeatCode']);
+
+// POST /api/reset-password
+Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
 
 //GET /google/user-info
 Route::get('/google/user-info', [GetUserInfoGoogleController::class, 'getUserInfoGoogle']);
