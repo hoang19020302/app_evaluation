@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use App\Enums\ServiceStatus;
+use Illuminate\Support\Facades\Cache;
 use stdClass;
 
 class GoogleController extends Controller
@@ -46,7 +47,7 @@ class GoogleController extends Controller
             // Khi user đăng nhập bằng google
             case 'login':
                 $user = DB::table('user')
-                        ->select('UserID')
+                        ->select('UserID', 'CreatedDate')
                         ->where('UserName', $email)
                         ->first();
                 if ($user) {
@@ -54,7 +55,18 @@ class GoogleController extends Controller
                     session()->regenerate();
                     session()->put('expire_time', $expire_time);
                     $message = 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!!!';
+                    // Lưu này thong tin này vào cache
+                    $userData = new stdClass();
+                    $userData->userID = $user->UserID;
+                    $userData->userName = $email;
+                    $userData->method = 'google';
+                    $userData->type = 'existing';
+                    $userData->sessionID = session()->getId();
+                    $userData->createdDate = $user->CreatedDate;
+                    Cache::put('user_' . $userData->method . '_' . $userData->type, $userData, 120);
+
                     Auth::loginUsingId($user->UserID);
+                
                     return redirect()->route('handle.notify', ['state' => $state])->with([
                         'state' => $state,
                         'title' => 'Success!',
@@ -83,6 +95,16 @@ class GoogleController extends Controller
                         $expire_time = Carbon::now()->addMinutes(Config::get('session.lifetime'));
                         session()->regenerate();
                         session()->put('expire_time', $expire_time);
+                        // Lưu này thong tin này vào cache
+                        $userData = new stdClass();
+                        $userData->userID = $newUser->UserID;
+                        $userData->userName = $email;
+                        $userData->method = 'google';
+                        $userData->type = 'new';
+                        $userData->sessionID = session()->getId();
+                        $userData->createdDate = $newUser->CreatedDate;
+                        Cache::put('user_' . $userData->method . '_' . $userData->type, $userData, 120);
+
                         Auth::loginUsingId($newUser->UserID);
                         return redirect()->route('handle.notify', ['state' => $state])->with([
                                 'state' => $state,

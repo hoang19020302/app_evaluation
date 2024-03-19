@@ -12,6 +12,7 @@ use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\LogoutController;
 use App\Http\Controllers\API\CheckInfoController;
 use App\Http\Controllers\API\ChangePasswordController;
+use App\Http\Controllers\API\GetUserInfoGoogleController;
 
 
 
@@ -25,6 +26,9 @@ use App\Http\Controllers\API\ChangePasswordController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+//GET /google/user-info
+Route::get('/google/user-info', [GetUserInfoGoogleController::class, 'getUserInfoGoogle']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
