@@ -31,6 +31,11 @@ return [
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
+
+    'mailchimp' => [
+        'api_key' => env('MAILCHIMP_APIKEY'),
+        'list_id' => env('MAILCHIMP_LIST_ID'),
+    ],
     
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

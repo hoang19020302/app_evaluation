@@ -5,92 +5,81 @@ namespace App\Http\Controllers\API;
 use Illuminate\Http\Request;
 use Exception;
 use Carbon\Carbon;
-use App\Mail\EvaluationInvitation;
+//use App\Mail\EvaluationInvitation;
+use App\Jobs\SendEmailJob;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ServiceStatus;
-use Swift_TransportException;
-
+use Illuminate\Support\Str;
 
 class SendEmailController extends Controller
 {
-    //POST send-email
+    //POST /api/send-email
     public function sendEmailWithLink(Request $request)
     {
-        //Logic lấy groupInformationID
-        $invitedEmailsFormatted = preg_replace("/[\r\n\s;]+/", ';', $request->input('invitedEmails'));
+        //Format đầu vào
+        $emailsString = preg_replace("/[\r\n\s;]+/", ';', $request->input('invitedEmails'));
+        //$invitedEmails = explode(';', $invitedEmailsFormatted);
+        //$invitedEmails = array_filter(array_unique($invitedEmails));
+
+        //$emailsString = implode(';', $invitedEmails);
         $groupName = $request->input('groupName');
-        $groupInformations = DB::table('groupinformation')
-                                ->select('GroupInformationID', 'CreatedDate')
-                                ->where('GroupName', $groupName)
-                                ->where('InvitedEmails', $invitedEmailsFormatted)
-                                ->get();
-        $count = $groupInformations->count();
-        // Khởi tạo giá trị khoảng thời gian nhỏ nhất
-        $minDifference = PHP_INT_MAX;
-        $selectedGroupInformationID = null;
-        if ($count == 1) {
-            $selectedGroupInformationID = $groupInformations[0]->GroupInformationID;
-        } elseif ($count > 1) {
-            foreach ($groupInformations as $groupInformation) {
-            // Tính khoảng thời gian từ createdDate đến hiện tại
-                $createdDate = Carbon::parse($groupInformation->CreatedDate);
-                $difference = Carbon::now()->diffInSeconds($createdDate);
-    
-                // So sánh với khoảng thời gian nhỏ nhất hiện tại
-                if ($difference < $minDifference) {
-                    $minDifference = $difference;
-                    $selectedGroupInformationID = $groupInformation->GroupInformationID;
-                }
-            }
-        }
+        $questionBankID = $request->input('questionBankID');
+        $userID = $request->input('userID');
+        $checkUser = DB::table('user')->where('UserID', $userID)->first();
+        $groupInformationID = Str::uuid();
+        DB::table('groupinformation')->insert([
+            'GroupInformationID' => $groupInformationID,
+            'UserID' => $userID,
+            'GroupName' => $groupName,
+            'QuestionBankID' => $questionBankID,
+            'InvitedEmails' => $emailsString,
+            'CreatedDate' => Carbon::now(),
+        ]);
 
         // Tạo thời gian hết hạn 30 phút
-        $expiration = Carbon::now()->addMinutes(30);
+        $expirationTime = Carbon::now()->addMinutes(30);
         // Tách chuỗi email thành mảng các địa chỉ email
-        $invitedEmails = explode(';', $invitedEmailsFormatted);
-        $invitedEmails = array_filter(array_unique($invitedEmails));
+        $emails = explode(';', $emailsString);
         // Tạo token với expiration và groupInformationID
-        //$token = Crypt::encryptString($expiration . '_' . $selectedGroupInformationID);
-        $questionBankID = DB::table('groupinformation')
-                            ->where('GroupInformationID', $selectedGroupInformationID)
-                            ->value('QuestionBankID');
+        //$token = Crypt::encryptString($expirationTime . '_' . $groupInformationID);
+        $questionBankType = DB::table('questionbank')
+                            ->where('QuestionBankID', $questionBankID)
+                            ->value('QuestionBankType');
 
         // Lặp qua mỗi địa chỉ email và gán một token riêng cho mỗi email
-        foreach ($invitedEmails as $email) {
+        foreach ($emails as $email) {
             //Lấy fullname tuong ung voi email
-            $name = DB::table('user')->where('UserName', $email)->value('FullName');
+            $token = Crypt::encryptString($groupInformationID . '_' . $email);
             // Tạo  URL chứa token để kiểm tra thời gian sống của  link
-            $evaluationLink = 'http://localhost:3000/' . 'group-test/' . $selectedGroupInformationID . '/test' . '/' . $questionBankID;
-            // Gửi email với liên kết
-            $emailContent = $this->getEmailContent($request->input('personality'));
-            $this->sendEmail($email, $emailContent, $evaluationLink, $expiration, $name);
+            $evaluationLink = 'http://127.0.0.1:3000/' . 'group-test/' . $groupInformationID . '/test' . '/' . $questionBankID;
+            $evaluationLink = route('track.email.open', ['token' => $token]);
+            $emailContent = $this->getEmailContent($questionBankType);
+            
+            $this->sendEmail($email, $emailContent, $evaluationLink, $expirationTime);
         }
         
         return response()->json(['status' => ServiceStatus::Success, 'success' => 'Emails sent successfully!']);
     }
 
-    private function getEmailContent($personality) {
-        if ($personality === 'character') {
-            return 'Tham gia vào bài test tính cách. ';
-        } elseif ($personality === 'mentality') {
-            return 'Tham gia lại bài test tâm lý. ';
+    private function getEmailContent($questionBankType) {
+        if ($questionBankType === 1) {
+            return 'Tham gia vào bài đánh giá tính cách. ';
+        } elseif ($questionBankType === 2) {
+            return 'Tham gia lại bài đánh giá tâm lý. ';
         }
     }
 
-    private function sendEmail($email, $emailContent, $evaluationLink, $expiration, $name) {
-        $invalidEmails = [];
+    private function sendEmail($email, $emailContent, $evaluationLink, $expirationTime) {
         try {
             // Thực hiện gửi email 
-            Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expiration, $name));
-        } catch (Swift_TransportException $e) {
-            $invalidEmails[] = ['email' => $email, 'message' => $e->getMessage()];
+            //Mail::to($email)->send(new EvaluationInvitation($emailContent, $evaluationLink, $expirationTime));
+            SendEmailJob::dispatch($email, $emailContent, $evaluationLink, $expirationTime)->onQueue('emails');
         } catch (Exception $e) {
             return response()->json(['status' => ServiceStatus::Error, 'error' => $e->getMessage()]);
         }
-        // Trả về danh sách các địa chỉ email không hợp lệ
-        return response()->json(['status' => ServiceStatus::Fail, 'invalid_emails' => $invalidEmails]);
     }
 }

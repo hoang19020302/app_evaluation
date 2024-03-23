@@ -80,7 +80,7 @@ class GoogleController extends Controller
                         'title' => 'Success!',
                         'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
                         'modifier' => 'alert-success', 
-                        'url' => 'http://localhost:3000/personal-results',
+                        'url' => 'http://127.0.0.1:3000/personal-results',
                         'sessionId' => session()->getId(),
                         'userId' => $user->UserID,
                     ]);
@@ -100,6 +100,7 @@ class GoogleController extends Controller
                     if ($newUser) {
                         // Gui email cho người dùng
                         Mail::to($email)->send(new UserInformation($newUser->UserName, $newUser->FullName, $appPassword, $newUser->CreatedDate));
+
                         // Đăng nhập người dùng mới và tạo phiên
                         $expire_time = Carbon::now()->addMinutes(Config::get('session.lifetime'));
                         session()->regenerate();
@@ -128,7 +129,7 @@ class GoogleController extends Controller
                                 'title' => 'Success!',
                                 'message' => 'Đăng nhập với người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào gmail của bạn.Vui lòng kiểm tra gmail để xem chi tiết.',
                                 'modifier' => 'alert-success', 
-                                'url' => 'http://localhost:3000/personal-results',
+                                'url' => 'http://127.0.0.1:3000/personal-results',
                                 'sessionId' => session()->getId(),
                                 'userId' => $newUser->UserID,
                             ]);
@@ -150,12 +151,13 @@ class GoogleController extends Controller
                       ->update(['Password'=> Hash::make($newAppPassword), 'ModifiedDate' => $updatedTime]);
                     // Gui email cho người dùng
                     Mail::to($email)->send(new UserNewPassword($user->FullName, $newAppPassword, $updatedTime));
+
                     return redirect()->route('handle.notify', ['state' => $state])->with([
                         'state' => $state,
                         'title' => 'Success!',
                         'message' => 'Mật khẩu của bạn đã được tạo mới. Vui lòng kiểm tra gmail để lấy mật khẩu và đăng nhập lại vào tomatch.me.',
                         'modifier' => 'alert-success', 
-                        'url' => 'http://localhost:3000/',
+                        'url' => 'http://127.0.0.1:3000/login',
                     ]);
                     } else {
                         return redirect()->route('handle.notify', ['state' => $state])->with([
@@ -163,7 +165,7 @@ class GoogleController extends Controller
                             'title' => 'Warning!',
                             'message' => 'Tài khoản Google này chưa được đăng ký!',
                             'modifier' => 'alert-warning', 
-                            'url' => 'http://localhost:3000',
+                            'url' => 'http://127.0.0.1:3000/login',
                         ]);
                     }
                 break;

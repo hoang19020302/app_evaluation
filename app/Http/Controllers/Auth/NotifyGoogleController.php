@@ -9,10 +9,10 @@ class NotifyGoogleController extends Controller
 {
     //GET notify/{state}
     function notifyStatus() {
-        return view('googles.handle_notify');
+        return view('google_facebook.handle_notify');
     }
     //GET no-internet
     function noInternet() {
-        return view('googles.no_internet');
+        return view('google_facebook.no_internet');
     }
 }

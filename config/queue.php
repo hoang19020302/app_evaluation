@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'sync'),
+    'default' => env('QUEUE_CONNECTION'),
 
     /*
     |--------------------------------------------------------------------------
@@ -44,11 +44,14 @@ return [
 
         'beanstalkd' => [
             'driver' => 'beanstalkd',
-            'host' => 'localhost',
-            'queue' => 'default',
+            'host' => env('BEANSTALKD_HOST'),
+            'queue' => env('BEANSTALKD_PORT'),
             'retry_after' => 90,
             'block_for' => 0,
             'after_commit' => false,
+            'timeout' => 60, 
+            'ttr' => 60, 
+            'reserve-timeout' => 5,
         ],
 
         'sqs' => [

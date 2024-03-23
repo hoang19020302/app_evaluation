@@ -18,25 +18,19 @@ class SendEmailJob implements ShouldQueue
     protected $email;
     protected $emailContent;
     protected $evaluationLink;
-    protected $expiration;
-    protected $groupName;
-    protected $name;
-    protected $brokenLink;
+    protected $expirationTime;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($email, $emailContent, $evaluationLink, $expiration, $groupName, $name, $brokenLink)
+    public function __construct($email, $emailContent, $evaluationLink, $expirationTime)
     {
         $this->email = $email;
         $this->emailContent = $emailContent;
         $this->evaluationLink = $evaluationLink;
-        $this->expiration = $expiration;
-        $this->groupName = $groupName;
-        $this->name = $name;
-        $this->brokenLink = $brokenLink;
+        $this->expiration = $expirationTime;
     }
 
     /**
@@ -47,6 +41,6 @@ class SendEmailJob implements ShouldQueue
     public function handle()
     {
         // Thực hiện gửi email
-        Mail::to($this->email)->send(new EvaluationInvitation($this->emailContent, $this->evaluationLink, $this->expiration, $this->groupName, $this->name, $this->brokenLink));
+        Mail::to($this->email)->send(new EvaluationInvitation($this->emailContent, $this->evaluationLink, $this->expirationTime));
     }
 }

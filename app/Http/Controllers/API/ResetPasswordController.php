@@ -23,10 +23,12 @@ class ResetPasswordController extends Controller
             $cacheKey = 'reset_password_' . $userID;
             $verifyCode = random_int(100000, 999999);
             Cache::put($cacheKey, $verifyCode, Carbon::now()->addMinutes(5));
-            Mail::to($email)->send(new VerificationCode($user->FullName, $verifyCode));
-            return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID]);
+            $sendTime = Carbon::now();
+            $nameWithPixel = $user->FullName . '<img src="' . route('track.email.open', ['email' => $email, 'action' => 'reset', 'sendTime' => $sendTime]) . '" style="display:none">';
+            Mail::to($email)->send(new VerificationCode($nameWithPixel, $verifyCode));
+            return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID, 'message' => 'Mã xác thực đã được tạo.']);
         } else {
-            return response()->json(['status' => ServiceStatus::Error, 'message' => 'Email không tồn tại.']);
+            return response()->json(['status' => ServiceStatus::Error, 'message' => 'Email chưa đăng ký.']);
         }
     }
 
@@ -50,13 +52,26 @@ class ResetPasswordController extends Controller
     // POST /api/repeat-code
     public function repeatCode(Request $request) {
         $userID = $request->input('userID');
+        $user = DB::table('user')->select('FullName')->where('UserID', $userID)->first();
         $cacheKey = 'forgot_password_' . $userID;
         $verifyCode = random_int(100000, 999999);
-        Cache::put($cacheKey, $verifyCode);
-        Mail::to($email)->send(new VerificationCode($user->FullName, $verifyCode));
-        return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID, 'message' => 'Mã xác nhận đã được gửi lại.']);
+        Cache::put($cacheKey, $verifyCode, Carbon::now()->addMinutes(5));
+        $sendTime = Carbon::now();
+        $nameWithPixel = $user->FullName . '<img src="' . route('track.email.open', ['email' => $email, 'action' => 'reset', 'sendTime' => $sendTime]) . '" style="display:none">';
+        Mail::to($email)->send(new VerificationCode($nameWithPixel, $verifyCode));
+        return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID, 'message' => 'Mã xác nhận đã được tạo lại.']);
     }
 
+    // POST /api/not-google-email
+    public function notGoogleEmail(Request $request) {
+        $userID = $request->input('userID');
+        $user = DB::table('user')->select('UserName')->where('UserID', $userID)->first();  
+        $verifyCode = Cache::get('reset_password_' . $userID);
+        if (!$verifyCode) {
+            return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Mã xác thực đã hết hạn. Bạn hãy tạo mã xác thực mới.']);
+        }
+        return response()->json(['status' => ServiceStatus::Success, 'verifyCode' => $verifyCode, 'message' => 'Gửi lại mã xác thực cho người dùng ']);
+    }
 
     // POST /api/reset-password
     public function resetPassword(Request $request) {

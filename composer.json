@@ -14,8 +14,7 @@
         "laravel/sanctum": "^2.11",
         "laravel/socialite": "^5.12",
         "laravel/tinker": "^2.5",
-        "pda/pheanstalk": "^4.0",
-        "predis/predis": "^2.2"
+        "pda/pheanstalk": "^4.0"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

@@ -14,6 +14,7 @@ use App\Http\Controllers\API\CheckInfoController;
 use App\Http\Controllers\API\ChangePasswordController;
 use App\Http\Controllers\API\GetUserInfoGoogleController;
 use App\Http\Controllers\API\ResetPasswordController;
+use App\Http\Controllers\EmailTrackingController;
 
 
 
@@ -27,6 +28,8 @@ use App\Http\Controllers\API\ResetPasswordController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+// analytics
+Route::get('/analytics', [EmailTrackingController::class, 'analytics']);
 
 //POST /api/email-auth
 Route::post('/email-auth', [ResetPasswordController::class, 'emailAuth']);
@@ -36,6 +39,9 @@ Route::post('/verify-code', [ResetPasswordController::class, 'verifyCode']);
 
 // POST /api/repeat-code
 Route::post('/repeat-code', [ResetPasswordController::class, 'repeatCode']);
+
+// POST /api/not-google-email
+Route::post('/not-google-email', [ResetPasswordController::class, 'notGoogleEmail']);
 
 // POST /api/reset-password
 Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);

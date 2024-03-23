@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Events\EmailSent;
+use Illuminate\Support\Facades\Event;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,5 +26,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         //
+        $invalidEmails = [];
+        Event::listen(EmailSent::class, function (EmailSent $event) use (&$invalidEmails) {
+            if (!$event->success) {
+                $invalidEmails[] = ['email' => $event->email, 'message' => $event->errorMessage];
+            }
+        });
+
+        view()->share('invalidEmails', $invalidEmails);
     }
 }
