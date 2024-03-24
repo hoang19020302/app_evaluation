@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Lấy lại mật khẩu</title>
+    <title>{{ $title }}</title>
 </head>
 <body>
     <p>Xin chào {{ $fullName }}</p>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tham gia bài test</title>
+    <title>{{ $title }}</title>
 </head>
 <body>
     <p>Xin chào bạn, </p>

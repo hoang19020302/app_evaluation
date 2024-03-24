@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
-use App\Mail\UserInformation;
-use App\Mail\UserNewPassword;
+use App\Jobs\SendEmailJob2;
+use App\Jobs\SendEmailJob3;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -79,7 +79,7 @@ class GoogleController extends Controller
                         'state' => $state,
                         'title' => 'Success!',
                         'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
-                        'modifier' => 'alert-success', 
+                        'modifier' => 'success', 
                         'url' => 'http://127.0.0.1:3000/personal-results',
                         'sessionId' => session()->getId(),
                         'userId' => $user->UserID,
@@ -99,8 +99,8 @@ class GoogleController extends Controller
                     // Kiểm tra xem user đc tạo chưa
                     if ($newUser) {
                         // Gui email cho người dùng
-                        Mail::to($email)->send(new UserInformation($newUser->UserName, $newUser->FullName, $appPassword, $newUser->CreatedDate));
-
+                        $title = 'Thông tin người dùng đăng nhập';
+                        SendEmailJob2::dispatch($email, $title, $newUser->UserName, $newUser->FullName, $appPassword, $newUser->CreatedDate)->onQueue('emails_2');
                         // Đăng nhập người dùng mới và tạo phiên
                         $expire_time = Carbon::now()->addMinutes(Config::get('session.lifetime'));
                         session()->regenerate();
@@ -128,7 +128,7 @@ class GoogleController extends Controller
                                 'state' => $state,
                                 'title' => 'Success!',
                                 'message' => 'Đăng nhập với người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào gmail của bạn.Vui lòng kiểm tra gmail để xem chi tiết.',
-                                'modifier' => 'alert-success', 
+                                'modifier' => 'success', 
                                 'url' => 'http://127.0.0.1:3000/personal-results',
                                 'sessionId' => session()->getId(),
                                 'userId' => $newUser->UserID,
@@ -150,13 +150,15 @@ class GoogleController extends Controller
                       ->where('UserName', $email)
                       ->update(['Password'=> Hash::make($newAppPassword), 'ModifiedDate' => $updatedTime]);
                     // Gui email cho người dùng
-                    Mail::to($email)->send(new UserNewPassword($user->FullName, $newAppPassword, $updatedTime));
+                    $title = 'Lấy lại mật khẩu';
+                    //Mail::to($email)->send(new UserNewPassword($user->FullName, $newAppPassword, $updatedTime));
+                    SendEmailJob3::dispatch($email, $title, $user->FullName, $newAppPassword, $updatedTime)->onQueue('emails_3');
 
                     return redirect()->route('handle.notify', ['state' => $state])->with([
                         'state' => $state,
                         'title' => 'Success!',
                         'message' => 'Mật khẩu của bạn đã được tạo mới. Vui lòng kiểm tra gmail để lấy mật khẩu và đăng nhập lại vào tomatch.me.',
-                        'modifier' => 'alert-success', 
+                        'modifier' => 'success', 
                         'url' => 'http://127.0.0.1:3000/login',
                     ]);
                     } else {
@@ -164,7 +166,7 @@ class GoogleController extends Controller
                             'state' => $state,
                             'title' => 'Warning!',
                             'message' => 'Tài khoản Google này chưa được đăng ký!',
-                            'modifier' => 'alert-warning', 
+                            'modifier' => 'warning', 
                             'url' => 'http://127.0.0.1:3000/login',
                         ]);
                     }

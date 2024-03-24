@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Reset password</title>
+    <title>{{ $title }}</title>
 </head>
 <body>
     <p>Xin chào, <strong>{!! $fullName !!}</strong></p>

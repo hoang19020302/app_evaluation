@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Thông tin tài khoản đăng nhập</title>
+    <title>{{ $title }}</title>
 </head>
 <body>
     <p>Họ và tên: <strong>{{ $fullName }}</strong></p>

@@ -10,7 +10,7 @@ use App\Enums\ServiceStatus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
-use App\Mail\VerificationCode;
+use App\Jobs\SendEmailJob4;
 
 class ResetPasswordController extends Controller
 {
@@ -23,9 +23,8 @@ class ResetPasswordController extends Controller
             $cacheKey = 'reset_password_' . $userID;
             $verifyCode = random_int(100000, 999999);
             Cache::put($cacheKey, $verifyCode, Carbon::now()->addMinutes(5));
-            $sendTime = Carbon::now();
-            $nameWithPixel = $user->FullName . '<img src="' . route('track.email.open', ['email' => $email, 'action' => 'reset', 'sendTime' => $sendTime]) . '" style="display:none">';
-            Mail::to($email)->send(new VerificationCode($nameWithPixel, $verifyCode));
+            $title = 'Nhận mã xác thực';
+            SendEmailJob4::dispatch($email, $title, $user->FullName, $verifyCode)->onQueue('emails_4');
             return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID, 'message' => 'Mã xác thực đã được tạo.']);
         } else {
             return response()->json(['status' => ServiceStatus::Error, 'message' => 'Email chưa đăng ký.']);

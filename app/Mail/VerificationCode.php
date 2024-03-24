@@ -16,11 +16,13 @@ class VerificationCode extends Mailable
      *
      * @return void
      */
+    public $title;
     public $fullName;
     public $verifyCode;
 
-    public function __construct($fullName, $verifyCode)
+    public function __construct($title, $fullName, $verifyCode)
     {
+        $this->title = $title;
         $this->fullName = $fullName;
         $this->verifyCode = $verifyCode;
     }
@@ -28,8 +30,9 @@ class VerificationCode extends Mailable
     public function build()
     {
         return $this->view('emails.verification_code')
-                    ->subject('Nhận mã xác thực')
+                    ->subject($this->title)
                     ->with([
+                        'title' => $this->title,
                         'fullName' => $this->fullName,
                         'verifyCode' => $this->verifyCode,
                     ]);

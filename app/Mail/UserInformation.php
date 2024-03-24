@@ -16,13 +16,15 @@ class UserInformation extends Mailable
      *
      * @return void
      */
+    public $title;
     public $userName;
     public $fullName;
     public $password;
     public $createdDate;
 
-    public function __construct($userName, $fullName, $password, $createdDate)
+    public function __construct($title, $userName, $fullName, $password, $createdDate)
     {
+        $this->title = $title;
         $this->userName = $userName;
         $this->fullName = $fullName;
         $this->password = $password;
@@ -32,8 +34,9 @@ class UserInformation extends Mailable
     public function build()
     {
         return $this->view('emails.user_information')
-                    ->subject('Thông tin tài khoản đăng nhập')
+                    ->subject($this->title)
                     ->with([
+                        'title' => $this->title,
                         'userName' => $this->userName,
                         'fullName' => $this->fullName,
                         'password' => $this->password,

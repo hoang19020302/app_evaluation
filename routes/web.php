@@ -34,7 +34,7 @@ Route::get('/track-email-open', [EmailTrackingController::class, 'trackEmailOpen
 
 //error
 Route::get('/error', function() {
-    return view('emails.error');
+    return view('check.error');
 })->name('error');
 // notify/{state}
 Route::get('/notify/{state}', [NotifyGoogleController::class, 'notifyStatus'])->name('handle.notify');

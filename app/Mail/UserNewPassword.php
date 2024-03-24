@@ -16,12 +16,14 @@ class UserNewPassword extends Mailable
      *
      * @return void
      */
+    public $title;
     public $fullName;
     public $newPassword;
     public $updatedDate;
 
-    public function __construct($fullName, $newPassword, $updatedDate)
+    public function __construct($title, $fullName, $newPassword, $updatedDate)
     {
+        $this->title = $title;
         $this->fullName = $fullName;
         $this->newPassword = $newPassword;
         $this->updatedDate = $updatedDate;
@@ -30,8 +32,9 @@ class UserNewPassword extends Mailable
     public function build()
     {
         return $this->view('emails.user_new_password')
-                    ->subject('Lấy lại mật khẩu')
+                    ->subject($this->title)
                     ->with([
+                        'title' => $this->title,
                         'fullName' => $this->fullName,
                         'newPassword' => $this->newPassword,
                         'updatedDate' => $this->updatedDate

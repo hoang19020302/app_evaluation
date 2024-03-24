@@ -61,7 +61,7 @@ class FacebookController extends Controller
                         'state' => $state,
                         'title' => 'Success!',
                         'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
-                        'modifier' => 'alert-success', 
+                        'modifier' => 'success', 
                         'url' => route('home'),
                         'sessionId' => session()->getId(),
                     ]);
@@ -90,7 +90,7 @@ class FacebookController extends Controller
                             'state' => $state,
                             'title' => 'Success!',
                             'message' => 'Đăng nhập người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào email tài khoản Facebook của bạn.Vui lòng kiểm tra email để xem chi tiết.',
-                            'modifier' => 'alert-success', 
+                            'modifier' => 'success', 
                             'url' => route('home'),
                             'sessionId' => session()->getId(),
                         ]);
@@ -116,7 +116,7 @@ class FacebookController extends Controller
                         'state' => $state,
                         'title' => 'Success!',
                         'message' => 'Mật khẩu của bạn đã được tạo mới. Vui lòng kiểm tra email của Facebook để lấy mật khẩu và đăng nhập lại vào tomatch.me.',
-                        'modifier' => 'alert-success', 
+                        'modifier' => 'success', 
                         'url' => route('welcome'),
                     ]);
                     } else {
@@ -124,7 +124,7 @@ class FacebookController extends Controller
                             'state' => $state,
                             'title' => 'Warning!',
                             'message' => 'Tài khoản Facebook này chưa được đăng ký!',
-                            'modifier' => 'alert-warning', 
+                            'modifier' => 'warning', 
                             'url' => route('welcome'),
                         ]);
                     }
