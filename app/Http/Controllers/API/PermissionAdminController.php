@@ -1,51 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\EmailOpen;
 use Illuminate\Support\Facades\DB;
 use App\Enums\ServiceStatus;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Redirect;
 
-
-class EmailTrackingController extends Controller
+class PermissionAdminController extends Controller
 {
-    //GET email/open
-    public function trackEmailOpen(Request $request)
-    {   
-        $token = $request->query('token');
-        // Giải mã token
-        $decodedToken = Crypt::decryptString($token);
-        [$groupInformationID, $email] = explode('_', $decodedToken);
-        $questionBankID = DB::table('groupinformation')->where('GroupInformationID', $groupInformationID)->value('QuestionBankID');
-        $questionBankType = DB::table('questionbank')->where('QuestionBankID', $questionBankID)->value('QuestionBankType');
-        $status = 'not_exist';
-        // Lưu thông tin về việc email đã được mở vào cơ sở dữ liệu
-        $userEmail = DB::table('user')->where('UserName', $email)->first();
-        if ($userEmail) {
-            $status = 'exist';
-        }
-        DB::table('email_opens')->insert([
-            'email' => $email, 
-            'status' => $status, 
-            'opened_at' => Carbon::now(),
-            'type' => $questionBankType, 
-        ]);
-        // Tạo hình ảnh pixel
-        $urlApp = 'http://localhost:3000/' . 'group-test/' . $groupInformationID . '/test' . '/' . $questionBankID;
-
-        return Redirect::to($urlApp);
-    }
-
-    public function analytics(Request $request)
-    {   
-        // GET /api/analytics
+    //GET /api/permission?permissions=1
+    public function permissionAdmin(Request $request) {
         $permissions = $request->query('permissions');
-        if ($permissions == 0) {
+        if ($permissions != 1) {
             return response()->json(['status'=>ServiceStatus::Success, 'data'=>null, 'message'=>'Bạn không có quyền truy cập']);
         } elseif ($permissions == 1) {
             // Lấy ra các email không mở thư , số thư đc gửi, số thư đã mở
