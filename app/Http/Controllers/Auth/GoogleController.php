@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use App\Jobs\SendEmailJob2;
 use App\Jobs\SendEmailJob3;
+use App\Mail\UserNewPassword;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -151,8 +152,8 @@ class GoogleController extends Controller
                       ->update(['Password'=> Hash::make($newAppPassword), 'ModifiedDate' => $updatedTime]);
                     // Gui email cho người dùng
                     $title = 'Lấy lại mật khẩu';
-                    //Mail::to($email)->send(new UserNewPassword($user->FullName, $newAppPassword, $updatedTime));
-                    SendEmailJob3::dispatch($email, $title, $user->FullName, $newAppPassword, $updatedTime)->onQueue('emails_3');
+                    Mail::to($email)->send(new UserNewPassword($title, $user->FullName, $newAppPassword, $updatedTime));
+                    //SendEmailJob3::dispatch($email, $title, $user->FullName, $newAppPassword, $updatedTime)->onQueue('emails_3');
 
                     return redirect()->route('handle.notify', ['state' => $state])->with([
                         'state' => $state,

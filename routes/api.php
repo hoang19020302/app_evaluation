@@ -8,7 +8,7 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\ListUserController;
 use App\Http\Controllers\API\SendEmailController;
 use App\Http\Controllers\API\GroupEmailController;
-use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\LogoutController;
 use App\Http\Controllers\API\CheckInfoController;
 use App\Http\Controllers\API\ChangePasswordController;
@@ -59,7 +59,7 @@ Route::get('/csrf-token', [YourController::class, 'getCsrfToken']);
 // register
 Route::post('/register', [RegisterController::class, 'registerUser']);
 // login
-Route::post('/login', [LoginController::class, 'loginUser']);
+Route::post('/login', [UserController::class, 'login']);
 
 
 
