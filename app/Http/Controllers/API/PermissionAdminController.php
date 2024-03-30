@@ -7,10 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Enums\ServiceStatus;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Jobs\SendEmailJob3;
+use App\Mail\JoinRegisterApp;
 
 class PermissionAdminController extends Controller
 {
-    //GET /api/permission?permissions=1
+    //GET /api/permission/admin?permissions=1
     public function permissionAdmin(Request $request) {
         $permissions = $request->query('permissions');
         if ($permissions != 1) {
@@ -29,14 +32,13 @@ class PermissionAdminController extends Controller
             }
             $totalLetterSent =count($invitedEmailsArray);
             $invitedEmailsArray = collect(array_unique($invitedEmailsArray));
-            //$totalEmailSent = $invitedEmailsArray->count();
     
             $emailsOpened = DB::table('email_opens')->pluck('email');
             $totalLetterOpened = $emailsOpened->count();
             $emailsOpened = $emailsOpened->unique();
-            //$totalEmailOpened = $emailsOpened->count();
             $emailsNoOpened = $invitedEmailsArray->diff($emailsOpened);
             $emailsNoOpened = $emailsNoOpened->values();
+
             // Lấy chi tiết thông tin email mở thư
             $emailOpenInfo = [];
             foreach ($emailsOpened as $email) {
@@ -44,48 +46,59 @@ class PermissionAdminController extends Controller
                 $totalBeck = DB::table('email_opens')->where('email', $email)->where('type', '2')->count();
                 $emailOpenInfo[$email] = "BECK: $totalBeck DISC: $totalDisc";
             }
-    
+
+            // Lấy số lượng bài đáng giá DISC và BECK mỗi email đã làm
+            $emailInfo = [];
+            $totalBeckCount = 0;
+            $totalDiscCount = 0;
+            $emailResults = DB::table('personalresult')
+                    ->select('personalresult.EmailInformation', 
+                            DB::raw('COUNT(DISTINCT CASE WHEN questionbank.QuestionBankType = 2 THEN personalresult.createdDate ELSE NULL END) AS beck_test_count'), 
+                            DB::raw('COUNT(DISTINCT CASE WHEN questionbank.QuestionBankType = 1 THEN personalresult.createdDate ELSE NULL END) AS disc_test_count'))
+                    ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
+                    ->groupBy('personalresult.EmailInformation')
+                    ->get();
+            foreach ($emailResults as $result) {
+                $email = $result->EmailInformation;
+                $beckTestCount = $result->beck_test_count;
+                $discTestCount = $result->disc_test_count;
+                
+                $totalBeckCount += $beckTestCount;
+                $totalDiscCount += $discTestCount;
+                
+                $emailInfo[$email] = "BECK: $beckTestCount DISC: $discTestCount";
+            }
+            // Kết quả tổng số lượng bài test BECK và DISC
+            $totalTestCount = [
+                'total_beck_count' => $totalBeckCount,
+                'total_disc_count' => $totalDiscCount
+            ];
+
             // Đếm số tk ko đc đăng ký
-            // $notRegisteredEmails = DB::table('email_opens')
-            //                         ->select('email')
-            //                         ->where('status', 'not_exist')
-            //                         ->pluck('email');
             $emailJoin = DB::table('personalresult')->pluck('EmailInformation');
             $emailJoin = $emailJoin->unique();
             $emailRegister = DB::table('user')->pluck('UserName');
             $notRegisteredEmails = $emailJoin->diff($emailRegister);
             $notRegisteredEmails = $notRegisteredEmails->values();
 
-            // Danh sách những email tham gia bài test
-            $totalBeckCount = 0;
-            $totalDiscCount = 0;
-
-            $emailResults = DB::table('personalresult')
+            // Lấy số lượng câu hỏi đã làm của mỗi email tương ứng BECK or DISC
+            $emailQuestionResults = DB::table('personalresult')
                 ->select('personalresult.EmailInformation', 
-                        DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 2 THEN 1 ELSE 0 END) AS beck_count'), 
-                        DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 1 THEN 1 ELSE 0 END) AS disc_count'))
+                        DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 2 THEN 1 ELSE 0 END) AS question_beck_count'), 
+                        DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 1 THEN 1 ELSE 0 END) AS question_disc_count'))
                 ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
                 ->groupBy('personalresult.EmailInformation')
                 ->get();
 
-            $emailInfo = [];
+            $emailQuestionInfo = [];
 
-            foreach ($emailResults as $result) {
+            foreach ($emailQuestionResults as $result) {
                 $email = $result->EmailInformation;
-                $beckCount = $result->beck_count;
-                $discCount = $result->disc_count;
+                $questionBeckCount = $result->question_beck_count;
+                $questionDiscCount = $result->question_disc_count;
 
-                $emailInfo[$email] = "BECK: $beckCount DISC: $discCount";
-
-                $totalBeckCount += $result->beck_count;
-                $totalDiscCount += $result->disc_count;
+                $emailQuestionInfo[$email] = "QUESTION_BECK: $questionBeckCount QUESTION_DISC: $questionDiscCount";
             }
-
-            // Kết quả tổng số lượng bài test BECK và DISC
-            $totalTestCount = [
-                'total_beck_count' => $totalBeckCount,
-                'total_disc_count' => $totalDiscCount
-            ];
         
             // Số email tham gia từng bài test
             $usersByType = DB::table('email_opens')
@@ -125,21 +138,59 @@ class PermissionAdminController extends Controller
                 return response()->json([
                     'status' => ServiceStatus::Success,
                     'data' => [
-                        'total_letter_opened' => $totalLetterOpened,
-                        'total_letter_sent' => $totalLetterSent,
-                        'total_group' => $totalGroup,
-                        'list_email_opened' => $emailOpenInfo,
-                        'list_email_no_opened' => $emailsNoOpened,
-                        'list_email_not_registered' => $notRegisteredEmails,
-                        'total_info_group' => $groupInfo,
-                        'email_info_test' => $emailInfo,
-                        'total_test_count' => $totalTestCount,
-                        'total_email_count' => $totalEmailCount
+                        'total_letter_opened' => $totalLetterOpened,//Số email đc gửi
+                        'total_letter_sent' => $totalLetterSent,//Số email đã mở
+                        'total_group' => $totalGroup, //Số nhóm đc tạo
+                        'list_email_opened' => $emailOpenInfo,  //danh sách chi tiết các email mở thư
+                        'list_email_no_opened' => $emailsNoOpened,//danh sách email ko mở thư
+                        'list_email_not_registered' => $notRegisteredEmails,//danh sách các email làm bài test nhưng chưa đăng ký
+                        'total_info_group' => $groupInfo,// thông tin chi tiết của người tạo nhóm
+                        'email_info_test' => $emailInfo,//thông tin về số lg bài test từng email
+                        'email_info_question' => $emailQuestionInfo,//thông tin về số câu hỏi cho từng email
+                        'total_test_count' => $totalTestCount,//Tổng số lg bài test theo loại
+                        'total_email_count' => $totalEmailCount//Số lg email tham gia theo từng loại bài test
                     ]
                 ]);
             } else {
                 return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Không có dữ liệu để trả về']);
             }
         }
+    }
+
+    //POST /email-no-register
+    public function emailNoRegister(Request $request) {
+        $email = $request->input('email');
+        // $permissions = $request->input('permissions');
+        // if ($permissions!= 1) {
+        //     return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Không có quyền truy cập nội dung này.']);
+        // } elseif ($permissions == 1) {
+
+        // }
+        $link = 'http://127.0.0.1:3000/register';
+        $title = 'Mời tham gia đăng ký ứng dụng';
+        Mail::to($email)->send(new JoinRegisterApp($title, $link));
+        //SendEmailJob3::dispatch($email, $title, $link)->onQueue('email_3');
+        return response()->json(['status' => ServiceStatus::Success,'message' => 'Gửi email thành công.']);
+    }
+
+    //GET /info-test/{email}
+    public function emailInfoTest(Request $request, $email) {
+        $results = DB::table('personalresult')
+                    ->select('CreatedDate', 'QuestionBankID', 'GroupInformationID')
+                    ->where('EmailInformation', $email)
+                    ->groupBy('CreatedDate', 'QuestionBankID', 'GroupInformationID')
+                    ->orderBy('CreatedDate', 'desc')
+                    ->get();
+        $emailInfo = [];
+        $type = '';
+        foreach ($results as $result) {
+            $questionBankID = $result->QuestionBankID;
+            $createdDate = $result->CreatedDate;
+            $groupID = $result->GroupInformationID;
+            $questionBankType = DB::table('questionbank')->where('QuestionBankID', $questionBankID)->value('QuestionBankType');
+            $type = $questionBankType == 2 ? 'BECK' : 'DISC';
+            $emailInfo[$createdDate.' - '.$groupID][$questionBankID] = $type;
+        }
+        return response()->json(['status' => ServiceStatus::Success, 'data' => $emailInfo]);
     }
 }

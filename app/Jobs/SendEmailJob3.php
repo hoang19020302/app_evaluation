@@ -9,7 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\UserNewPassword;
+use App\Mail\JoinRegisterApp;
 
 
 class SendEmailJob3 implements ShouldQueue
@@ -18,22 +18,18 @@ class SendEmailJob3 implements ShouldQueue
 
     protected $email;
     protected $title;
-    protected $fullName;
-    protected $newPassword;
-    protected $updatedDate;
+    protected $link;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($email, $title, $fullName, $newPassword, $updatedDate)
+    public function __construct($email, $title, $link)
     {
         $this->email = $email;
         $this->title = $title;
-        $this->fullName = $fullName;
-        $this->newPassword = $newPassword;
-        $this->updatedDate = $updatedDate;
+        $this->link = $link;
     }
 
     /**
@@ -44,7 +40,7 @@ class SendEmailJob3 implements ShouldQueue
     public function handle()
     {
         // Thực hiện gửi email 
-        Mail::to($this->email)->send(new UserNewPassword($this->title, $this->fullName, $this->newPassword, $this->updatedDate));
+        Mail::to($this->email)->send(new JoinRegisterApp($this->title, $this->link));
     }
 }
 

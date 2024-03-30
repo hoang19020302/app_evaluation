@@ -99,6 +99,12 @@ class GoogleController extends Controller
                     $newUser = DB::table('user')->where('UserName', $email)->first();
                     // Kiểm tra xem user đc tạo chưa
                     if ($newUser) {
+                        // Cập nhật UserID các bài test nhóm nếu có
+                        DB::table('personalresult')
+                        ->where('EmailInformation', 'like', "%$email%")
+                        ->update(['UserID'=>$newUser->UserID, 'ModifiedDate'=>Carbon::now()]);
+
+                        DB::commit();
                         // Gui email cho người dùng
                         $title = 'Thông tin người dùng đăng nhập';
                         SendEmailJob2::dispatch($email, $title, $newUser->UserName, $newUser->FullName, $appPassword, $newUser->CreatedDate)->onQueue('emails_2');

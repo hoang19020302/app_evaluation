@@ -11,7 +11,8 @@ wait
 # Khởi động server laravel và các worker queue
 php artisan serve &
 php artisan queue:work --queue=emails_1 & 
-php artisan queue:work --queue=emails_2 
+php artisan queue:work --queue=emails_2 $
+php artisan queue:work --queue=emails_3 &
 
 
 

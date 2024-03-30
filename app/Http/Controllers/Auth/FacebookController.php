@@ -79,6 +79,12 @@ class FacebookController extends Controller
                     $newUser = DB::table('user')->where('UserName', $email)->first();
                     // Kiểm tra xem user đc tạo chưa
                     if ($newUser) {
+                        // Cập nhật UserID các bài test nhóm nếu có
+                        DB::table('personalresult')
+                        ->where('EmailInformation', 'like', "%$email%")
+                        ->update(['UserID'=>$newUser->UserID, 'ModifiedDate'=>Carbon::now()]);
+
+                        DB::commit();
                         // Gui email cho người dùng
                         Mail::to($email)->send(new UserInformation($newUser->UserName, $newUser->FullName, $appPassword, $newUser->CreatedDate));
                         // Đăng nhập người dùng mới và tạo phiên

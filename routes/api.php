@@ -14,7 +14,7 @@ use App\Http\Controllers\API\CheckInfoController;
 use App\Http\Controllers\API\ChangePasswordController;
 use App\Http\Controllers\API\GetUserInfoGoogleController;
 use App\Http\Controllers\API\ResetPasswordController;
-use App\Http\Controllers\EmailTrackingController;
+use App\Http\Controllers\API\PermissionAdminController;
 
 
 
@@ -29,7 +29,13 @@ use App\Http\Controllers\EmailTrackingController;
 |
 */
 // analytics
-Route::get('/analytics', [EmailTrackingController::class, 'analytics']);
+Route::get('/permission/admin', [PermissionAdminController::class, 'permissionAdmin']);
+
+// email-no-register
+Route::post('/email-no-register', [PermissionAdminController::class,'emailNoRegister']);
+
+// info-test/{email}
+Route::get('/info-test/{email}', [PermissionAdminController::class,'emailInfoTest']);
 
 //POST /api/email-auth
 Route::post('/email-auth', [ResetPasswordController::class, 'emailAuth']);
