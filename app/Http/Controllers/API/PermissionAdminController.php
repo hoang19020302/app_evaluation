@@ -119,8 +119,8 @@ class PermissionAdminController extends Controller
                 return response()->json([
                     'status' => ServiceStatus::Success,
                     'data' => [
-                        'total_letter_opened' => $totalLetterOpened,//Số email đc gửi
-                        'total_letter_sent' => $totalLetterSent,//Số email đã mở
+                        'total_letter_opened' => $totalLetterOpened,//Số thư đc gửi
+                        'total_letter_sent' => $totalLetterSent,//Số thư đã mở
                         'total_group' => $totalGroup, //Số nhóm đc tạo
                         'list_email_opened' => $emailOpenInfo,  //danh sách chi tiết các email mở thư
                         'list_email_no_opened' => $emailsNoOpened,//danh sách email ko mở thư
