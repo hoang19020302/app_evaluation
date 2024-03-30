@@ -52,12 +52,12 @@ class PermissionAdminController extends Controller
             $totalBeckCount = 0;
             $totalDiscCount = 0;
             $emailResults = DB::table('personalresult')
-                    ->select('personalresult.EmailInformation', 
-                            DB::raw('COUNT(DISTINCT CASE WHEN questionbank.QuestionBankType = 2 THEN personalresult.createdDate ELSE NULL END) AS beck_test_count'), 
-                            DB::raw('COUNT(DISTINCT CASE WHEN questionbank.QuestionBankType = 1 THEN personalresult.createdDate ELSE NULL END) AS disc_test_count'))
-                    ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
-                    ->groupBy('personalresult.EmailInformation')
-                    ->get();
+                        ->select('personalresult.EmailInformation', 
+                                DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 2 THEN 1 ELSE 0 END) AS beck_test_count'), 
+                                DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 1 THEN 1 ELSE 0 END) AS disc_test_count'))
+                        ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
+                        ->groupBy('personalresult.EmailInformation')
+                        ->get();
             foreach ($emailResults as $result) {
                 $email = $result->EmailInformation;
                 $beckTestCount = $result->beck_test_count;
@@ -81,25 +81,6 @@ class PermissionAdminController extends Controller
             $notRegisteredEmails = $emailJoin->diff($emailRegister);
             $notRegisteredEmails = $notRegisteredEmails->values();
 
-            // Lấy số lượng câu hỏi đã làm của mỗi email tương ứng BECK or DISC
-            $emailQuestionResults = DB::table('personalresult')
-                ->select('personalresult.EmailInformation', 
-                        DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 2 THEN 1 ELSE 0 END) AS question_beck_count'), 
-                        DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 1 THEN 1 ELSE 0 END) AS question_disc_count'))
-                ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
-                ->groupBy('personalresult.EmailInformation')
-                ->get();
-
-            $emailQuestionInfo = [];
-
-            foreach ($emailQuestionResults as $result) {
-                $email = $result->EmailInformation;
-                $questionBeckCount = $result->question_beck_count;
-                $questionDiscCount = $result->question_disc_count;
-
-                $emailQuestionInfo[$email] = "QUESTION_BECK: $questionBeckCount QUESTION_DISC: $questionDiscCount";
-            }
-        
             // Số email tham gia từng bài test
             $usersByType = DB::table('email_opens')
                 ->select('type', DB::raw('COUNT(DISTINCT email) as total'))
@@ -146,7 +127,6 @@ class PermissionAdminController extends Controller
                         'list_email_not_registered' => $notRegisteredEmails,//danh sách các email làm bài test nhưng chưa đăng ký
                         'total_info_group' => $groupInfo,// thông tin chi tiết của người tạo nhóm
                         'email_info_test' => $emailInfo,//thông tin về số lg bài test từng email
-                        'email_info_question' => $emailQuestionInfo,//thông tin về số câu hỏi cho từng email
                         'total_test_count' => $totalTestCount,//Tổng số lg bài test theo loại
                         'total_email_count' => $totalEmailCount//Số lg email tham gia theo từng loại bài test
                     ]
@@ -160,12 +140,6 @@ class PermissionAdminController extends Controller
     //POST /email-no-register
     public function emailNoRegister(Request $request) {
         $email = $request->input('email');
-        // $permissions = $request->input('permissions');
-        // if ($permissions!= 1) {
-        //     return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Không có quyền truy cập nội dung này.']);
-        // } elseif ($permissions == 1) {
-
-        // }
         $link = 'http://127.0.0.1:3000/register';
         $title = 'Mời tham gia đăng ký ứng dụng';
         Mail::to($email)->send(new JoinRegisterApp($title, $link));
