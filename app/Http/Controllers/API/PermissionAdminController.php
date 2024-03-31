@@ -24,10 +24,9 @@ class PermissionAdminController extends Controller
             $invitedEmailsArray = [];
             foreach ($invitedEmailsFromDB as $emails) {
                 $individualEmails = explode(';', $emails);
+                $individualEmails = array_filter(array_unique($individualEmails));
                 foreach ($individualEmails as $email) {
-                    if (!empty($email)) {
-                        $invitedEmailsArray[] = trim($email);
-                    }
+                    $invitedEmailsArray[] = trim($email);   
                 }
             }
             $totalLetterSent =count($invitedEmailsArray);
@@ -52,21 +51,24 @@ class PermissionAdminController extends Controller
             $totalBeckCount = 0;
             $totalDiscCount = 0;
             $emailResults = DB::table('personalresult')
-                        ->select('personalresult.EmailInformation', 
-                                DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 2 THEN 1 ELSE 0 END) AS beck_test_count'), 
-                                DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 1 THEN 1 ELSE 0 END) AS disc_test_count'))
+                        ->select(DB::raw('JSON_EXTRACT(personalresult.EmailInformation, "$.Email") as Email'), 
+                                 DB::raw('COUNT(DISTINCT JSON_EXTRACT(personalresult.EmailInformation, "$.Name")) as name_count'),
+                                 DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 2 THEN 1 ELSE 0 END) AS beck_test_count'), 
+                                 DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 1 THEN 1 ELSE 0 END) AS disc_test_count'))
                         ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
-                        ->groupBy('personalresult.EmailInformation')
+                        ->groupBy('Email')
                         ->get();
             foreach ($emailResults as $result) {
-                $email = $result->EmailInformation;
+                $email = json_decode($result->Email, true);
+                $nameCount = $result->name_count;
+                //$names = json_decode($result->Names, true);
                 $beckTestCount = $result->beck_test_count;
                 $discTestCount = $result->disc_test_count;
                 
                 $totalBeckCount += $beckTestCount;
                 $totalDiscCount += $discTestCount;
                 
-                $emailInfo[$email] = "BECK: $beckTestCount DISC: $discTestCount";
+                $emailInfo[$email] = "BECK: $beckTestCount DISC: $discTestCount name_count: $nameCount";
             }
             // Kết quả tổng số lượng bài test BECK và DISC
             $totalTestCount = [
@@ -75,10 +77,15 @@ class PermissionAdminController extends Controller
             ];
 
             // Đếm số tk ko đc đăng ký
-            $emailJoin = DB::table('personalresult')->pluck('EmailInformation');
-            $emailJoin = $emailJoin->unique();
+            $emailJoin = DB::table('personalresult')
+                            ->select(DB::raw('JSON_EXTRACT(personalresult.EmailInformation, "$.Email") as Email'))
+                            ->groupBy('Email')
+                            ->get();
+            $emailJoinTest = $emailJoin->map(function ($item, $key) {
+                return json_decode($item->Email, true);
+            });
             $emailRegister = DB::table('user')->pluck('UserName');
-            $notRegisteredEmails = $emailJoin->diff($emailRegister);
+            $notRegisteredEmails = $emailJoinTest->diff($emailRegister);
             $notRegisteredEmails = $notRegisteredEmails->values();
 
             // Số email tham gia từng bài test
@@ -151,7 +158,7 @@ class PermissionAdminController extends Controller
     public function emailInfoTest(Request $request, $email) {
         $results = DB::table('personalresult')
                     ->select('CreatedDate', 'QuestionBankID', 'GroupInformationID')
-                    ->where('EmailInformation', $email)
+                    ->where('EmailInformation', 'like', "%$email%")
                     ->groupBy('CreatedDate', 'QuestionBankID', 'GroupInformationID')
                     ->orderBy('CreatedDate', 'desc')
                     ->get();
@@ -164,6 +171,9 @@ class PermissionAdminController extends Controller
             $questionBankType = DB::table('questionbank')->where('QuestionBankID', $questionBankID)->value('QuestionBankType');
             $type = $questionBankType == 2 ? 'BECK' : 'DISC';
             $emailInfo[$createdDate.' - '.$groupID][$questionBankID] = $type;
+        }
+        if (empty($emailInfo)) {
+            return response()->json(['status' => ServiceStatus::Error, 'data' => null]);
         }
         return response()->json(['status' => ServiceStatus::Success, 'data' => $emailInfo]);
     }
