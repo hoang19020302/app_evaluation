@@ -7,4 +7,9 @@
         setTimeout(function() {
             window.location.href = "{{route('home')}}";
         }, 3000);
+        </script>
+<script><
+        <
+                /script>
+                <script>
 </script>

@@ -1,3 +1,4 @@
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <a href="{{ route('facebook.login') }}" class="btn btn-danger">Login with facebook</a> 
 <a href="{{ route('facebook.forgot.password') }}" class="btn btn-danger">Forgot password with facebook</a>
 

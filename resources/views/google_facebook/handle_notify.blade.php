@@ -1,4 +1,5 @@
 <link href="/css/app.css" rel="stylesheet">
+<link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-10 col-12">
