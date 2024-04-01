@@ -6,25 +6,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 
 class LogoutController extends Controller
 {
     //POST api/logout
     public function logoutUser(Request $request) {
-        $expiration = Carbon::now()->addDays(30)->diffInSeconds();
-        //Lấy token từ header
-        $token = $request->bearerToken();
-        // Lấy list user từ cache
-        $users = Cache::get('users_info', []);
-        // Tìm kiếm người dùng trong danh sách
-        foreach ($users as &$user) {
-            if ($user['token'] === $token) {
-                $user['token'] = 'NO_TOKEN';
-                break;
-            }
+        $personalResultID = Str::uuid();
+
+        if (!$request->result || !$request->questionBankID) {
+            return response()->json(['status'=>ServiceStatus::Fail,'message'=> 'Thiếu dữ liệu cần thiết']);
         }
-        Cache::put('users_info', $users, $expiration);
+
+            DB::table('personalresult')
+            ->insert(['PersonalResultID'=>$personalResultID,
+                    'UserID'=>$request->userID,
+                    'Result'=>$request->result,
+                    'GroupInformationID'=>$request->groupInformationID,
+                    'QuestionBankID'=> $request->questionBankID,
+                    'EmailInformation'=>$request->emailInformation,
+                    'CreatedDate'=>Carbon::now()]);
         return response()->json(['success' => 'User logged out successfully'], 200);
     }
 }

@@ -54,7 +54,7 @@ class PermissionAdminController extends Controller
                         ->leftJoin('user', 'personalresult.UserID', '=', 'user.UserID')
                         ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
                         ->select(
-                                 DB::raw('COALESCE(CONCAT("\"", user.UserName, "\""), JSON_EXTRACT(personalresult.EmailInformation, "$.Email")) as Email'), 
+                                 DB::raw('COALESCE(CAST(user.UserName AS CHAR), JSON_UNQUOTE(JSON_EXTRACT(personalresult.EmailInformation, "$.Email"))) as Email'), 
                                  DB::raw('COUNT(DISTINCT JSON_EXTRACT(personalresult.EmailInformation, "$.Name")) as name_count'),
                                  DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 2 THEN 1 ELSE 0 END) AS beck_test_count'), 
                                  DB::raw('SUM(CASE WHEN questionbank.QuestionBankType = 1 THEN 1 ELSE 0 END) AS disc_test_count')
@@ -62,7 +62,7 @@ class PermissionAdminController extends Controller
                         ->groupBy('Email')
                         ->get();
             foreach ($emailResults as $result) {
-                $email = json_decode($result->Email, true);
+                $email = $result->Email;
                 $nameCount = $result->name_count;
         
                 $beckTestCount = $result->beck_test_count;
@@ -71,7 +71,7 @@ class PermissionAdminController extends Controller
                 $totalBeckCount += $beckTestCount;
                 $totalDiscCount += $discTestCount;
                 
-                $emailInfo[$email] = "BECK: $beckTestCount DISC: $discTestCount name_count: $nameCount";
+                $emailInfo[$email] = "BECK: $beckTestCount DISC: $discTestCount NameCount: $nameCount";
             }
             // Kết quả tổng số lượng bài test BECK và DISC
             $totalTestCount = [
@@ -82,12 +82,10 @@ class PermissionAdminController extends Controller
             // Đếm số tk ko đc đăng ký
             $emailJoin = DB::table('personalresult')
                             ->leftJoin('user', 'personalresult.UserID', '=', 'user.UserID')
-                            ->select(DB::raw('COALESCE(CONCAT("\"", user.UserName, "\""), JSON_EXTRACT(personalresult.EmailInformation, "$.Email")) as Email'))
+                            ->select(DB::raw('COALESCE(CAST(user.UserName AS CHAR), JSON_UNQUOTE(JSON_EXTRACT(personalresult.EmailInformation, "$.Email"))) as Email'))
                             ->groupBy('Email')
                             ->get();
-            $emailJoinTest = $emailJoin->map(function ($item, $key) {
-                return json_decode($item->Email, true);
-            });
+            $emailJoinTest = $emailJoin->pluck('Email');
             $emailRegister = DB::table('user')->pluck('UserName');
             $notRegisteredEmails = $emailJoinTest->diff($emailRegister);
             $notRegisteredEmails = $notRegisteredEmails->values();
