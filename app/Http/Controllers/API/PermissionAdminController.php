@@ -124,10 +124,19 @@ class PermissionAdminController extends Controller
             }
             $totalGroup = (DB::table('groupinformation')->pluck('GroupInformationID'))->count();
 
+            // Lay toan bo db trong personalresult
+            $personalResult = DB::table('personalresult')->get();
+            $personalResultTest =  $personalResult->map(function($item, $key) {
+                $item->EmailInformation = json_decode($item->EmailInformation, true);
+                $item->Result = json_decode($item->Result, true);
+                return $item;
+            });
+
             // Trả lại dữ liệu cho admin
             if ($totalLetterSent > 0) {
                 return response()->json([
                     'status' => ServiceStatus::Success,
+                    'message' => $personalResultTest,
                     'data' => [
                         'total_letter_opened' => $totalLetterOpened,//Số thư đc gửi
                         'total_letter_sent' => $totalLetterSent,//Số thư đã mở
@@ -183,5 +192,44 @@ class PermissionAdminController extends Controller
             return response()->json(['status' => ServiceStatus::Error, 'data' => null]);
         }
         return response()->json(['status' => ServiceStatus::Success, 'data' => $emailInfo]);
+    }
+    // GET /detail-info-test/{personalResultID}
+    public function detailInfoTest($personalResultID) {
+        $personalResult = DB::table('personalresult')
+                            ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
+                            ->select('personalresult.Result', 'questionbank.QuestionBankType')
+                            ->where('personalresult.PersonalResultID', $personalResultID)
+                            ->first(); 
+        $resultTest = json_decode($personalResult->Result, true);  
+        $typeTest = $personalResult->QuestionBankType == 2 ? 'BECK' : 'DISC';
+        $countTrue = 0;
+        $countFalse = 0;
+       
+        $counts = [];
+        foreach ($resultTest['Result'] as $result) {
+            $answer = $result['Answer'];
+            $questionID = $result['QuestionID'];
+            $questionType = DB::table('question')->where('QuestionID', $questionID)->value('QuestionType');
+            if (!isset($counts[$questionType])) {
+                $counts[$questionType] = ['total' => 0, 'correct' => 0, 'incorrect' => 0];
+            }
+            $counts[$questionType]['total']++;
+            if ($answer == true) {
+                $countTrue++;
+                $counts[$questionType]['correct']++;
+            } else {
+                $countFalse++;
+                $counts[$questionType]['incorrect']++;
+            }
+        }
+        
+        return response()->json([
+            'status' => ServiceStatus::Success,
+            $typeTest => [
+                'count_true' => $countTrue,
+                'count_false' => $countFalse,
+                'counts' => $counts
+            ]
+        ]);
     }
 }

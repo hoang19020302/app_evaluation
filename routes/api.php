@@ -37,6 +37,9 @@ Route::post('/email-no-register', [PermissionAdminController::class,'emailNoRegi
 // info-test/{email}
 Route::get('/info-test/{email}', [PermissionAdminController::class,'emailInfoTest']);
 
+// GET /info-test/{personalResultID}
+Route::get('/detail-info-test/{personalResultID}', [PermissionAdminController::class,'detailInfoTest']);
+
 //POST /api/email-auth
 Route::post('/email-auth', [ResetPasswordController::class, 'emailAuth']);
 

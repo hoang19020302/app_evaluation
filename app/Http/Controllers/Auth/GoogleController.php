@@ -178,8 +178,6 @@ class GoogleController extends Controller
                         ]);
                     }
                 break;
-            default:
-                return redirect()->route('handle.notify', ['state' => 'unknown']);
         }
     }
 }
