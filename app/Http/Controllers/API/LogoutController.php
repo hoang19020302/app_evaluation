@@ -19,7 +19,7 @@ class LogoutController extends Controller
         if (!$request->result || !$request->questionBankID) {
             return response()->json(['status'=>ServiceStatus::Fail,'message'=> 'Thiếu dữ liệu cần thiết']);
         }
-
+            DB::beginTransaction();
             DB::table('personalresult')
             ->insert(['PersonalResultID'=>$personalResultID,
                     'UserID'=>$request->userID,
@@ -28,6 +28,8 @@ class LogoutController extends Controller
                     'QuestionBankID'=> $request->questionBankID,
                     'EmailInformation'=>$request->emailInformation,
                     'CreatedDate'=>Carbon::now()]);
+            DB::commit();
+        
         return response()->json(['success' => 'User logged out successfully'], 200);
     }
 }

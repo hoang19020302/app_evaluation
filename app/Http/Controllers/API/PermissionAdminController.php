@@ -43,7 +43,7 @@ class PermissionAdminController extends Controller
             foreach ($emailsOpened as $email) {
                 $totalDisc = DB::table('email_opens')->where('email', $email)->where('type', '1')->count();
                 $totalBeck = DB::table('email_opens')->where('email', $email)->where('type', '2')->count();
-                $emailOpenInfo[$email] = "BECK: $totalBeck DISC: $totalDisc";
+                $emailOpenInfo[$email] = ['BECK' => $totalBeck, 'DISC' => $totalDisc];
             }
 
             // Lấy số lượng bài đáng giá DISC và BECK mỗi email đã làm
@@ -62,8 +62,8 @@ class PermissionAdminController extends Controller
                         ->groupBy('Email')
                         ->get();
             foreach ($emailResults as $result) {
-                $email = $result->Email ? $result->Email : "null";
-                $nameString = $result->Names ? $result->Names : "null";
+                $email = $result->Email ? $result->Email : 'null';
+                $nameString = $result->Names ? $result->Names : 'null';
         
                 $beckTestCount = $result->beck_test_count;
                 $discTestCount = $result->disc_test_count;
@@ -71,8 +71,9 @@ class PermissionAdminController extends Controller
                 $totalBeckCount += $beckTestCount;
                 $totalDiscCount += $discTestCount;
                 
-                $emailInfo[$email] = "BECK: $beckTestCount DISC: $discTestCount ListName: $nameString";
+                $emailInfo[$email] = ['BECK' => intval($beckTestCount), 'DISC' => intval($discTestCount), 'ListName' => $nameString];
             }
+          
             // Kết quả tổng số lượng bài test BECK và DISC
             $totalTestCount = [
                 'total_beck_count' => $totalBeckCount,
@@ -136,16 +137,15 @@ class PermissionAdminController extends Controller
             if ($totalLetterSent > 0) {
                 return response()->json([
                     'status' => ServiceStatus::Success,
-                    'message' => $personalResultTest,
                     'data' => [
                         'total_letter_opened' => $totalLetterOpened,//Số thư đc gửi
                         'total_letter_sent' => $totalLetterSent,//Số thư đã mở
                         'total_group' => $totalGroup, //Số nhóm đc tạo
-                        'list_email_opened' => $emailOpenInfo,  //danh sách chi tiết các email mở thư
+                        'list_email_opened' => array_values($emailOpenInfo),  //danh sách chi tiết các email mở thư
                         'list_email_no_opened' => $emailsNoOpened,//danh sách email ko mở thư
                         'list_email_not_registered' => $notRegisteredEmails,//danh sách các email làm bài test nhưng chưa đăng ký
                         'total_info_group' => $groupInfo,// thông tin chi tiết của người tạo nhóm
-                        'email_info_test' => $emailInfo,//thông tin về số lg bài test từng email
+                        'email_info_test' => array_values($emailInfo),//thông tin về số lg bài test từng email
                         'total_test_count' => $totalTestCount,//Tổng số lg bài test theo loại
                         'total_email_count' => $totalEmailCount//Số lg email tham gia theo từng loại bài test
                     ]
@@ -191,7 +191,7 @@ class PermissionAdminController extends Controller
         if (empty($emailInfo)) {
             return response()->json(['status' => ServiceStatus::Error, 'data' => null]);
         }
-        return response()->json(['status' => ServiceStatus::Success, 'data' => $emailInfo]);
+        return response()->json(['status' => ServiceStatus::Success, 'data' => array_values($emailInfo)]);
     }
     // GET /detail-info-test/{personalResultID}
     public function detailInfoTest($personalResultID) {
