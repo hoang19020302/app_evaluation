@@ -29,7 +29,7 @@ use App\Http\Controllers\API\PermissionAdminController;
 |
 */
 // analytics
-Route::get('/permission/admin', [PermissionAdminController::class, 'permissionAdmin']);
+Route::get('/admin/analytics', [PermissionAdminController::class, 'permissionAdmin']);
 
 // email-no-register
 Route::post('/email-no-register', [PermissionAdminController::class,'emailNoRegister']);

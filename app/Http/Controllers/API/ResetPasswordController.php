@@ -16,7 +16,7 @@ class ResetPasswordController extends Controller
 {
     //POST /api/email-auth
     public function emailAuth(Request $request) {
-        $email = $request->input('email');
+        $email = $request->email;
         $user = DB::table('user')->select('UserID', 'FullName')->where('UserName', $email)->first();
         if ($user) {
             $userID = $user->UserID;
@@ -41,7 +41,7 @@ class ResetPasswordController extends Controller
             Cache::forget($cacheKey);
             return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID, 'message' => 'Xac nhận thành công.']);
         } elseif (Cache::has($cacheKey) === false) {
-            return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Mã xác nhận đã hết hạn.']);
+            return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Mã xác thực không hợp lệ.']);
         } else {
             Cache::forget($cacheKey);
             return response()->json(['status' => ServiceStatus::Error, 'message' => 'Xác nhận thất bại.']);
@@ -51,13 +51,12 @@ class ResetPasswordController extends Controller
     // POST /api/repeat-code
     public function repeatCode(Request $request) {
         $userID = $request->input('userID');
-        $user = DB::table('user')->select('FullName')->where('UserID', $userID)->first();
-        $cacheKey = 'forgot_password_' . $userID;
+        $user = DB::table('user')->select('FullName', 'UserName')->where('UserID', $userID)->first();
+        $cacheKey = 'reset_password_' . $userID;
         $verifyCode = random_int(100000, 999999);
         Cache::put($cacheKey, $verifyCode, Carbon::now()->addMinutes(5));
-        $sendTime = Carbon::now();
-        $nameWithPixel = $user->FullName . '<img src="' . route('track.email.open', ['email' => $email, 'action' => 'reset', 'sendTime' => $sendTime]) . '" style="display:none">';
-        Mail::to($email)->send(new VerificationCode($nameWithPixel, $verifyCode));
+        $title = 'Nhận mã xác thực';
+        SendEmailJob4::dispatch($user->UserName, $title, $user->FullName, $verifyCode)->onQueue('emails_4');
         return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID, 'message' => 'Mã xác nhận đã được tạo lại.']);
     }
 

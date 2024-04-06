@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Jobs\SendEmailJob3;
 use App\Mail\JoinRegisterApp;
+use stdClass;
 
 class PermissionAdminController extends Controller
 {
@@ -90,7 +91,7 @@ class PermissionAdminController extends Controller
             $emailRegister = DB::table('user')->pluck('UserName');
             $notRegisteredEmails = $emailJoinTest->diff($emailRegister);
             
-            $notRegisteredEmails = count($notRegisteredEmails) > 0 ? $notRegisteredEmails->values() : null;
+            $notRegisteredEmails = count($notRegisteredEmails) > 0 ? $notRegisteredEmails->values() : 'null';
 
             // Số email tham gia từng bài test
             $usersByType = DB::table('email_opens')
@@ -132,23 +133,24 @@ class PermissionAdminController extends Controller
                 $item->Result = json_decode($item->Result, true);
                 return $item;
             });
+            $data = new stdClass();
+            $data->total_letter_opened = $totalLetterOpened;//Số thư đc gửi
+            $data->total_letter_sent = $totalLetterSent;//Số thư đã mở
+            $data->total_group = $totalGroup; //Số nhóm đc tạo
+            $data->list_email_opened = $emailOpenInfo;  //danh sách chi tiết các email mở thư
+            $data->list_email_no_opened = $emailsNoOpened;//danh sách email ko mở thư
+            $data->list_email_not_registered = $notRegisteredEmails;//danh sách các email làm bài test nhưng chưa đăng ký
+            $data->total_info_group = $groupInfo;// thông tin chi tiết của người tạo nhóm
+            $data->email_info_test = $emailInfo;//thông tin về số lg bài test từng email
+            $data->total_test_count = $totalTestCount;//Tổng số lg bài test theo loại
+            $data->total_email_count = $totalEmailCount;//Số lg email tham gia theo từng loại bài test
+
 
             // Trả lại dữ liệu cho admin
             if ($totalLetterSent > 0) {
                 return response()->json([
                     'status' => ServiceStatus::Success,
-                    'data' => [
-                        'total_letter_opened' => $totalLetterOpened,//Số thư đc gửi
-                        'total_letter_sent' => $totalLetterSent,//Số thư đã mở
-                        'total_group' => $totalGroup, //Số nhóm đc tạo
-                        'list_email_opened' => array_values($emailOpenInfo),  //danh sách chi tiết các email mở thư
-                        'list_email_no_opened' => $emailsNoOpened,//danh sách email ko mở thư
-                        'list_email_not_registered' => $notRegisteredEmails,//danh sách các email làm bài test nhưng chưa đăng ký
-                        'total_info_group' => $groupInfo,// thông tin chi tiết của người tạo nhóm
-                        'email_info_test' => array_values($emailInfo),//thông tin về số lg bài test từng email
-                        'total_test_count' => $totalTestCount,//Tổng số lg bài test theo loại
-                        'total_email_count' => $totalEmailCount//Số lg email tham gia theo từng loại bài test
-                    ]
+                    'data' => $data
                 ]);
             } else {
                 return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Không có dữ liệu để trả về']);
@@ -170,12 +172,12 @@ class PermissionAdminController extends Controller
     public function emailInfoTest(Request $request, $email) {
         $results = DB::table('personalresult')
                     ->leftJoin('user', 'personalresult.UserID', '=', 'user.UserID')
-                    ->select('personalresult.CreatedDate', 'personalresult.QuestionBankID', 'personalresult.PersonalResultID')
+                    ->select('personalresult.CreatedDate', 'personalresult.QuestionBankID', 'personalresult.PersonalResultID', 'personalresult.GroupInformationID')
                     ->where(function($query) use ($email) {
                         $query->where('user.UserName', '=', $email);
                     })
                     ->orWhere('personalresult.EmailInformation', 'like', "%$email%")
-                    ->groupBy('personalresult.CreatedDate', 'personalresult.QuestionBankID', 'personalresult.PersonalResultID')
+                    ->groupBy('personalresult.CreatedDate', 'personalresult.QuestionBankID', 'personalresult.PersonalResultID', 'personalresult.GroupInformationID')
                     ->orderBy('personalresult.CreatedDate', 'desc')
                     ->get();
         $emailInfo = [];
@@ -184,14 +186,15 @@ class PermissionAdminController extends Controller
             $questionBankID = $result->QuestionBankID;
             $createdDate = $result->CreatedDate;
             $personalResultID = $result->PersonalResultID;
+            $groupInformationID = $result->GroupInformationID;
             $questionBankType = DB::table('questionbank')->where('QuestionBankID', $questionBankID)->value('QuestionBankType');
             $type = $questionBankType == 2 ? 'BECK' : 'DISC';
-            $emailInfo[$createdDate][$personalResultID] = $type;
+            $emailInfo[$createdDate . ' - ' . $groupInformationID][$personalResultID] = $type;
         }
         if (empty($emailInfo)) {
-            return response()->json(['status' => ServiceStatus::Error, 'data' => null]);
+            return response()->json(['status' => ServiceStatus::Error, $email => null]);
         }
-        return response()->json(['status' => ServiceStatus::Success, 'data' => array_values($emailInfo)]);
+        return response()->json(['status' => ServiceStatus::Success, $email => $emailInfo]);
     }
     // GET /detail-info-test/{personalResultID}
     public function detailInfoTest($personalResultID) {

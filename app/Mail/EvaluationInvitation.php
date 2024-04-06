@@ -17,15 +17,13 @@ class EvaluationInvitation extends Mailable
      * @return void
      */
     public $title;
-    public $content;
-    public $evaluationLink;
+    public $linkArray;
     public $expirationTime;
 
-    public function __construct($title, $content, $evaluationLink, $expirationTime)
+    public function __construct($title, $linkArray, $expirationTime)
     {
         $this->title = $title;
-        $this->content = $content;
-        $this->evaluationLink = $evaluationLink;
+        $this->linkArray = $linkArray;
         $this->expirationTime = $expirationTime;
     }
 
@@ -35,8 +33,7 @@ class EvaluationInvitation extends Mailable
                     ->subject($this->title)
                     ->with([
                         'title' => $this->title,
-                        'content' => $this->content,
-                        'evaluationLink' => $this->evaluationLink,
+                        'linkArray' => $this->linkArray,
                         'expirationTime' => $this->expirationTime,
                     ]);
     }
