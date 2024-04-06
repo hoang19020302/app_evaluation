@@ -36,7 +36,7 @@ class SendEmailController extends Controller
             foreach ($emailsArr as $email) {
                 foreach ($types as $questionBankType) {
                     $groupInformationID = $this->insertData($emailsString, $groupName, $questionBankType, $userID);
-                    $title = 'Tham gia bài đánh giá nhân cách trên tomatch.me';
+                    $title = 'Tham gia các bài đánh giá trên tomatch.me';
                     $content = $this->getEmailContent($questionBankType);
                     // Tạo token với groupInformationID và email
                     $token = Crypt::encryptString($groupInformationID . '_' . $email);
