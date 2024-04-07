@@ -26,27 +26,31 @@ class SendEmailController extends Controller
         if (empty($types) || empty($emailsString)) {
             return response()->json(['status' => ServiceStatus::Fail,'message' => 'Không thể gửi thư do thiếu dữ liệu']);
         }
-        $message = '';
         // Tách chuỗi email thành mảng các địa chỉ email
         $emails = explode(';', $emailsString);
         $emailsArr = array_filter(array_unique($emails));
-        $linkArray = [];
-        $expirationTime = Carbon::now()->addMinutes(30);
+        $title = 'Tham gia các bài đánh giá trên tomatch.me';
+        // Thêm groupInformation trong database và lấy groupInformationID
+        $groupInformationID = $this->insertData($emailsString, $groupName, $types, $userID);
+        if (empty($groupInformationID)) {
+                return response()->json(['status' => ServiceStatus::Fail,'message' => 'Không thể gửi thư do thiếu dữ liệu']);
+        }
         // Xử lí vòng lặp
             foreach ($emailsArr as $email) {
+                $linkArray = [];
+                $sentTime = Carbon::now()->toDateTimeString();
+                $microSentTime = round(microtime(true) * 1000);
                 foreach ($types as $questionBankType) {
-                    $groupInformationID = $this->insertData($emailsString, $groupName, $questionBankType, $userID);
-                    $title = 'Tham gia các bài đánh giá trên tomatch.me';
                     $content = $this->getEmailContent($questionBankType);
                     // Tạo token với groupInformationID và email
-                    $token = Crypt::encryptString($groupInformationID . '_' . $email);
+                    $token = Crypt::encryptString($groupInformationID . '_' . $email . '_' . $questionBankType . '_' . $microSentTime);
                     //$link = 'http://127.0.0.1:3000/' . 'group-test/' . $groupInformationID . '/test' . '/' . $questionBankID;
                     // Tạo url theo dõi
                     $link = route('track.email.open', ['token' => $token]);
                     $linkArray[$link] = $content;
                 }
                 // Gửi email với liên kết
-                $this->sendEmail($email, $title, $linkArray, $expirationTime);
+                $this->sendEmail($email, $title, $linkArray, $sentTime);
             }
         return response()->json(['status' => ServiceStatus::Success, 'message' => 'Gửi thư thành công cho các email']);  
     }
@@ -61,31 +65,42 @@ class SendEmailController extends Controller
         return $content;
     }
 
-    private function insertData($emailsString, $groupName, $questionBankType, $userID) {
+    private function insertData($emailsString, $groupName, $types, $userID) {
         $groupInformationID = '';
-        $randomQuestionBankID = DB::table('questionbank')
-                                    ->where('QuestionBankType', $questionBankType)
-                                    ->inRandomOrder()
-                                    ->first();
-        if ($randomQuestionBankID) {
+        $questionBankIDArray = []; 
+        foreach ($types as $questionBankType) {
+            $randomQuestionBankID = DB::table('questionbank')
+                                        ->select('QuestionBankID')
+                                        ->where('QuestionBankType', $questionBankType)
+                                        ->inRandomOrder()
+                                        ->first();
+            $questionBankIDArray[] = $randomQuestionBankID->QuestionBankID;
+
+        }
+        DB::beginTransaction();
+        if (count($questionBankIDArray) == count($types)) {
             $groupInformationID = Str::uuid();
-            $questionBankID = $randomQuestionBankID->QuestionBankID;
+            $questionBankIDString = implode(';', $questionBankIDArray);
             DB::table('groupinformation')->insert([
                 'GroupInformationID' => $groupInformationID,
                 'UserID' => $userID,
                 'GroupName' => $groupName,
-                'QuestionBankID' => $questionBankID,
+                'QuestionBankID' => $questionBankIDString,
                 'InvitedEmails' => $emailsString,
                 'CreatedDate' => Carbon::now(),
             ]);
+            DB::commit();
+        } else {
+            DB::rollBack();
+            return null;
         }
         return $groupInformationID;
     }
 
-    private function sendEmail($email, $title, $linkArray, $expirationTime) {
+    private function sendEmail($email, $title, $linkArray, $sentTime) {
         try {
             // Thêm công việc gửi email vào hàng đợi Beanstalkd
-            SendEmailJob1::dispatch($email, $title, $linkArray, $expirationTime)->onQueue('emails_1');
+            SendEmailJob1::dispatch($email, $title, $linkArray, $sentTime)->onQueue('emails_1');
         } catch (Exception $e) {
             return response()->json(['status' => ServiceStatus::Fail, 'message' => $e->getMessage()]);
         }

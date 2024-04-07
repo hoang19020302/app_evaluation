@@ -13,11 +13,12 @@ class CreateEmailOpensTable extends Migration
      */
     public function up()
     {
-        Schema::create('email_opens', function (Blueprint $table) {
-            $table->string('email');
-            $table->string('status');
-            $table->timestamp('opened_at')->nullable();
-            $table->integer('type');
+        Schema::create('emailopens', function (Blueprint $table) {
+            $table->string('Email');
+            $table->string('Status');
+            $table->integer('Type');
+            $table->bigInteger('SentTime_ms')->nullable();
+            $table->timestamp('OpenTime')->nullable();
         });
     }
 
@@ -28,6 +29,6 @@ class CreateEmailOpensTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('email_opens');
+        Schema::dropIfExists('emailopens');
     }
 }

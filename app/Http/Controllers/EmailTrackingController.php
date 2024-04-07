@@ -18,27 +18,48 @@ class EmailTrackingController extends Controller
     public function trackEmailOpen(Request $request)
     {   
         $token = $request->query('token');
+        $desiredQuestionBankID = null;
         // Giải mã token
         $decodedToken = Crypt::decryptString($token);
-        [$groupInformationID, $email] = explode('_', $decodedToken);
-        $questionBankID = DB::table('groupinformation')->where('GroupInformationID', $groupInformationID)->value('QuestionBankID');
-        $questionBankType = DB::table('questionbank')->where('QuestionBankID', $questionBankID)->value('QuestionBankType');
+        [$groupInformationID, $email, $questionBankType, $sentTime] = explode('_', $decodedToken);
+        // Lấy và xử lý du liệu
+        $questionBankIDString = DB::table('groupinformation')->select('QuestionBankID')->where('GroupInformationID', $groupInformationID)->first();
+        $questionBankIDArray = explode(';', $questionBankIDString->QuestionBankID);
+        foreach ($questionBankIDArray as $questionBankID) {
+            $questionBankInfo = DB::table('questionbank')->select('QuestionBankType')->where('QuestionBankID', $questionBankID)->first();
+            if ($questionBankInfo->QuestionBankType === intval($questionBankType)) {
+                $desiredQuestionBankID = $questionBankID; 
+                break; 
+            }
+        }
         $status = 'not_exist';
         // Lưu thông tin về việc email đã được mở vào cơ sở dữ liệu
         $userEmail = DB::table('user')->where('UserName', $email)->first();
         if ($userEmail) {
             $status = 'exist';
         }
-        DB::table('email_opens')->insert([
-            'email' => $email, 
-            'status' => $status, 
-            'opened_at' => Carbon::now(),
-            'type' => $questionBankType, 
-        ]);
-        // Tạo hình ảnh pixel
-        $urlApp = 'http://localhost:3000/' . 'group-test/' . $groupInformationID . '/test' . '/' . $questionBankID;
-
-        return Redirect::to($urlApp);
+        // Lưu vào database
+        DB::beginTransaction();
+        try{
+            DB::table('emailopens')->insert([
+                'Email' => $email, 
+                'Status' => $status,
+                'Type' => $questionBankType, 
+                'SentTime_ms' => $sentTime,
+                'OpenTime' => Carbon::now(),
+            ]);
+        DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return Redirect::to(route('error'))->with('message', 'Lỗi khi lưu dữ liệu: ' . $e->getMessage());
+        }
+        // Tạo link
+        if ($desiredQuestionBankID) {
+            $urlApp = 'http://localhost:3000/' . 'group-test/' . $groupInformationID . '/test' . '/' . $desiredQuestionBankID;
+            return Redirect::to($urlApp);
+        } else {
+            return Redirect::to(route('error'))->with('message', 'Không tìm thấy bài test!');
+        }
     }
 
     public function analytics(Request $request)

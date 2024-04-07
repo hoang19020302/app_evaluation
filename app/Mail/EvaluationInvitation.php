@@ -18,13 +18,13 @@ class EvaluationInvitation extends Mailable
      */
     public $title;
     public $linkArray;
-    public $expirationTime;
+    public $sentTime;
 
-    public function __construct($title, $linkArray, $expirationTime)
+    public function __construct($title, $linkArray, $sentTime)
     {
         $this->title = $title;
         $this->linkArray = $linkArray;
-        $this->expirationTime = $expirationTime;
+        $this->sentTime = $sentTime;
     }
 
     public function build()
@@ -34,7 +34,7 @@ class EvaluationInvitation extends Mailable
                     ->with([
                         'title' => $this->title,
                         'linkArray' => $this->linkArray,
-                        'expirationTime' => $this->expirationTime,
+                        'sentTime' => $this->sentTime,
                     ]);
     }
 }

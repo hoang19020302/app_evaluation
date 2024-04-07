@@ -16,7 +16,7 @@ use App\Enums\ServiceStatus;
 
 class ListEmailController extends Controller
 {
-    //GET /list-ema
+    //GET /api/list-email
     public function getEmails(Request $request) {
         $userId = DB::table('user')->where('UserName', $request->input('email'))->value('UserID');
         $uuid = Str::uuid();
@@ -36,6 +36,11 @@ class ListEmailController extends Controller
                     'InvitedEmails')
             ->where('GroupInformationID', $uuid)
             ->first();
+            $groupInformationID = $groupInformation->GroupInformationID;
+            $invitedEmail = $groupInformation->InvitedEmails;
+            $groupName = $groupInformation->GroupName;
+            $questionBankID = $groupInformation->QuestionBankID;
+            
 
             return response()->json(['status'=>ServiceStatus::Success, 'data'=>$groupInformation]);
     }

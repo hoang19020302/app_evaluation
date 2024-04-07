@@ -49,9 +49,7 @@ return [
             'retry_after' => 90,
             'block_for' => 0,
             'after_commit' => false,
-            'timeout' => 60, 
-            'ttr' => 60, 
-            'reserve-timeout' => 5,
+            'timeout' => 60,
         ],
 
         'sqs' => [

@@ -26,24 +26,27 @@ class PermissionAdminController extends Controller
             foreach ($invitedEmailsFromDB as $emails) {
                 $individualEmails = explode(';', $emails);
                 $individualEmails = array_filter(array_unique($individualEmails));
-                foreach ($individualEmails as $email) {
-                    $invitedEmailsArray[] = trim($email);   
+                foreach ($individualEmails as $email) {  
+                    $invitedEmailsArray[] = trim($email);    
                 }
             }
             $totalLetterSent =count($invitedEmailsArray);
             $invitedEmailsArray = collect(array_unique($invitedEmailsArray));
     
-            $emailsOpened = DB::table('email_opens')->pluck('email');
+            $emailsOpened = DB::table('emailopens')
+                            ->select('SentTime_ms', 'Email')
+                            ->groupBy('SentTime_ms', 'Email')
+                            ->get();               
             $totalLetterOpened = $emailsOpened->count();
-            $emailsOpened = $emailsOpened->unique();
+            $emailsOpened = $emailsOpened->unique('Email')->pluck('Email');
             $emailsNoOpened = $invitedEmailsArray->diff($emailsOpened);
             $emailsNoOpened = $emailsNoOpened->values();
 
-            // Lấy chi tiết thông tin email mở thư
+            // Lấy chi tiết thông tin email mở bài test
             $emailOpenInfo = [];
             foreach ($emailsOpened as $email) {
-                $totalDisc = DB::table('email_opens')->where('email', $email)->where('type', '1')->count();
-                $totalBeck = DB::table('email_opens')->where('email', $email)->where('type', '2')->count();
+                $totalDisc = DB::table('emailopens')->where('Email', $email)->where('Type', '1')->count();
+                $totalBeck = DB::table('emailopens')->where('Email', $email)->where('Type', '2')->count();
                 $emailOpenInfo[$email] = ['BECK' => $totalBeck, 'DISC' => $totalDisc];
             }
 
@@ -94,18 +97,18 @@ class PermissionAdminController extends Controller
             $notRegisteredEmails = count($notRegisteredEmails) > 0 ? $notRegisteredEmails->values() : 'null';
 
             // Số email tham gia từng bài test
-            $usersByType = DB::table('email_opens')
-                ->select('type', DB::raw('COUNT(DISTINCT email) as total'))
-                ->groupBy('type')
+            $usersByType = DB::table('emailopens')
+                ->select('Type', DB::raw('COUNT(DISTINCT Email) as total'))
+                ->groupBy('Type')
                 ->get();
 
             $totalEmailDisc = 0;
             $totalEmailBeck = 0;
 
             foreach ($usersByType as $user) {
-                if ($user->type == 1) {
+                if ($user->Type == 1) {
                     $totalEmailDisc = $user->total;
-                } elseif ($user->type == 2) {
+                } elseif ($user->Type == 2) {
                     $totalEmailBeck = $user->total;
                 }
             }
@@ -126,13 +129,6 @@ class PermissionAdminController extends Controller
             }
             $totalGroup = (DB::table('groupinformation')->pluck('GroupInformationID'))->count();
 
-            // Lay toan bo db trong personalresult
-            $personalResult = DB::table('personalresult')->get();
-            $personalResultTest =  $personalResult->map(function($item, $key) {
-                $item->EmailInformation = json_decode($item->EmailInformation, true);
-                $item->Result = json_decode($item->Result, true);
-                return $item;
-            });
             $data = new stdClass();
             $data->total_letter_opened = $totalLetterOpened;//Số thư đc gửi
             $data->total_letter_sent = $totalLetterSent;//Số thư đã mở
@@ -161,6 +157,10 @@ class PermissionAdminController extends Controller
     //POST /email-no-register
     public function emailNoRegister(Request $request) {
         $email = $request->input('email');
+        $permissions = $request->input('permissions');
+        if ($permissions != 1) {
+            return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Bạn không có quyền truy cập']);
+        }
         $link = 'http://127.0.0.1:3000/register';
         $title = 'Mời tham gia đăng ký ứng dụng';
         Mail::to($email)->send(new JoinRegisterApp($title, $link));
@@ -170,6 +170,10 @@ class PermissionAdminController extends Controller
 
     //GET /info-test/{email}
     public function emailInfoTest(Request $request, $email) {
+        $permissions = $request->query('permissions');
+        if ($permissions != 1) {
+            return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Bạn không có quyền truy cập']);
+        }
         $results = DB::table('personalresult')
                     ->leftJoin('user', 'personalresult.UserID', '=', 'user.UserID')
                     ->select('personalresult.CreatedDate', 'personalresult.QuestionBankID', 'personalresult.PersonalResultID', 'personalresult.GroupInformationID')
@@ -197,7 +201,11 @@ class PermissionAdminController extends Controller
         return response()->json(['status' => ServiceStatus::Success, $email => $emailInfo]);
     }
     // GET /detail-info-test/{personalResultID}
-    public function detailInfoTest($personalResultID) {
+    public function detailInfoTest(Request $request, $personalResultID) {
+        $permissions = $request->query('permissions');
+        if ($permissions != 1) {
+            return response()->json(['status' => ServiceStatus::Fail, 'message' => 'Bạn không có quyền truy cập']);
+        }
         $personalResult = DB::table('personalresult')
                             ->join('questionbank', 'personalresult.QuestionBankID', '=', 'questionbank.QuestionBankID')
                             ->select('personalresult.Result', 'questionbank.QuestionBankType')

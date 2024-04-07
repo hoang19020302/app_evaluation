@@ -18,7 +18,7 @@
             <br>
         </p>
     @endforeach
-    <p>Thư được gửi lúc <strong>{{ $expirationTime }}</strong></p>
+    <p>Thư được gửi lúc <strong>{{ $sentTime }}</strong></p>
     <p>Trân trọng.</p>
 </body>
 </html>
