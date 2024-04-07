@@ -28,7 +28,15 @@ class SendEmailController extends Controller
         }
         // Tách chuỗi email thành mảng các địa chỉ email
         $emails = explode(';', $emailsString);
-        $emailsArr = array_filter(array_unique($emails));
+        // Kiem tra đinh dạng email
+        $validEmails = [];
+        foreach ($emails as $email) {
+            $trimmedEmail = trim($email); // Loại bỏ các khoảng trắng ở đầu và cuối email
+            if (filter_var($trimmedEmail, FILTER_VALIDATE_EMAIL)) {
+                $validEmails[] = $trimmedEmail;
+            }
+        }
+        $emailsArr = array_filter(array_unique($validEmails));
         $title = 'Tham gia các bài đánh giá trên tomatch.me';
         // Thêm groupInformation trong database và lấy groupInformationID
         $groupInformationID = $this->insertData($emailsString, $groupName, $types, $userID);

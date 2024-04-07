@@ -24,7 +24,7 @@ class EmailTrackingController extends Controller
         [$groupInformationID, $email, $questionBankType, $sentTime] = explode('_', $decodedToken);
         // Lấy và xử lý du liệu
         $questionBankIDString = DB::table('groupinformation')->select('QuestionBankID')->where('GroupInformationID', $groupInformationID)->first();
-        $questionBankIDArray = explode(';', $questionBankIDString->QuestionBankID);
+        $questionBankIDArray = array_filter(explode(';', $questionBankIDString->QuestionBankID));
         foreach ($questionBankIDArray as $questionBankID) {
             $questionBankInfo = DB::table('questionbank')->select('QuestionBankType')->where('QuestionBankID', $questionBankID)->first();
             if ($questionBankInfo->QuestionBankType === intval($questionBankType)) {
