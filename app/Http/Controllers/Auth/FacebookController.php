@@ -42,6 +42,7 @@ class FacebookController extends Controller
         $name = $facebookUser->getName();
         $birthday = $facebookUser->user['birthday'] ?? null;
         $recipientId = $facebookUser->getId();
+        $secretKey = base64_encode('123abc');
         //$accessToken = $facebookUser->token;
 
         switch ($state) {
@@ -55,7 +56,7 @@ class FacebookController extends Controller
                     $expire_time = Carbon::now()->addMinutes(Config::get('session.lifetime'));
                     session()->regenerate();
                     session()->put('expire_time', $expire_time);
-                    Auth::loginUsingId($user->UserID);
+                    //Auth::loginUsingId($user->UserID);
 
                     return redirect()->route('handle.notify', ['state' => $state])->with([
                         'state' => $state,
@@ -64,6 +65,7 @@ class FacebookController extends Controller
                         'modifier' => 'success', 
                         'url' => route('home'),
                         'sessionId' => session()->getId(),
+                        'secretKey' => $secretKey,
                     ]);
                 } else {
                     //Lưu thông tin user mới vào csdl
@@ -91,7 +93,7 @@ class FacebookController extends Controller
                         $expire_time = Carbon::now()->addMinutes(Config::get('session.lifetime'));
                         session()->regenerate();
                         session()->put('expire_time', $expire_time);
-                        Auth::loginUsingId($newUser->UserID);
+                        //Auth::loginUsingId($newUser->UserID);
                         return redirect()->route('handle.notify', ['state' => $state, 'idFb' => $recipientId])->with([
                             'state' => $state,
                             'title' => 'Success!',
@@ -99,6 +101,7 @@ class FacebookController extends Controller
                             'modifier' => 'success', 
                             'url' => route('home'),
                             'sessionId' => session()->getId(),
+                            'secretKey' => $secretKey,
                         ]);
                     }
                 }

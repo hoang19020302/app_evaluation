@@ -60,7 +60,7 @@ class SendEmailController extends Controller
                 // Gửi email với liên kết
                 $this->sendEmail($email, $title, $linkArray, $sentTime);
             }
-        return response()->json(['status' => ServiceStatus::Success, 'message' => 'Gửi thư thành công cho các email']);  
+        return response()->json(['status' => ServiceStatus::Success, 'message' => 'Gửi thư thành công cho các email', 'data' => $groupInformationID, 'types' => $types]);  
     }
 
     private function getEmailContent($questionBankType) {

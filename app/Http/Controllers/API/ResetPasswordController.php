@@ -33,11 +33,11 @@ class ResetPasswordController extends Controller
 
     // POST /api/verify-code
     public function verifyCode(Request $request) {
-        $verifyCode = $request->input('code');
+        $verifyCode = intval($request->input('code'));
         $userID = $request->input('userID');
         $cacheKey = 'reset_password_' . $userID;
         $checkCode = Cache::get($cacheKey);
-        if ($checkCode === intval($verifyCode)) {
+        if ($checkCode === $verifyCode) {
             Cache::forget($cacheKey);
             return response()->json(['status' => ServiceStatus::Success, 'userID' => $userID, 'message' => 'Xac nhận thành công.']);
         } elseif (Cache::has($cacheKey) === false) {

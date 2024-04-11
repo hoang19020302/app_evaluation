@@ -34,10 +34,12 @@
             $url = session('url');
             $sessionId = session('sessionId');
             $userId = session('userId');
+            $secretKey = session('secretKey');
         @endphp
-        @if($sessionId && $userId)
+        @if($sessionId && $userId && $secretKey && $url)
             document.cookie = "sessionId={{ $sessionId }}; path=/";
             document.cookie = "userId={{ $userId }}; path=/";
+            document.cookie = "secretKey={{ $secretKey }}; path=/";
         @endif
         setTimeout(function() {
             window.location.href = "{{ $url }}";//"{{ $url }}?{{ $sessionId }}&{{ $userId }}";

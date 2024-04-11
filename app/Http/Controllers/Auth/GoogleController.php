@@ -43,6 +43,7 @@ class GoogleController extends Controller
         $email = $googleUser->getEmail();
         $name = $googleUser->getName();
         $birthday = $googleUser->user['birthday'] ?? null;
+        $secretKey = base64_encode('123abc');
 
         switch ($state) {
             // Khi user đăng nhập bằng google
@@ -74,16 +75,17 @@ class GoogleController extends Controller
                         Cache::put($cacheKey, [$userData], 120);
                     }
 
-                    Auth::loginUsingId($user->UserID);
+                    //Auth::loginUsingId($user->UserID);
                 
                     return redirect()->route('handle.notify', ['state' => $state])->with([
                         'state' => $state,
                         'title' => 'Success!',
                         'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
                         'modifier' => 'success', 
-                        'url' => 'http://127.0.0.1:3000/personal-results',
-                        'sessionId' => session()->getId(),
-                        'userId' => $user->UserID,
+                        'url' => route('home'),
+                        'sessionId' => base64_encode($secretKey . '_' . session()->getId()),
+                        'userId' => base64_encode($secretKey . '_' . $user->UserID),
+                        'secretKey' => $secretKey,
                     ]);
                 } else {
                     //Lưu thông tin user mới vào csdl
@@ -130,15 +132,16 @@ class GoogleController extends Controller
                             Cache::put($cacheKey, [$userData], 120);
                         }
 
-                        Auth::loginUsingId($newUser->UserID);
+                        //Auth::loginUsingId($newUser->UserID);
                         return redirect()->route('handle.notify', ['state' => $state])->with([
                                 'state' => $state,
                                 'title' => 'Success!',
                                 'message' => 'Đăng nhập với người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào gmail của bạn.Vui lòng kiểm tra gmail để xem chi tiết.',
                                 'modifier' => 'success', 
-                                'url' => 'http://127.0.0.1:3000/personal-results',
-                                'sessionId' => session()->getId(),
-                                'userId' => $newUser->UserID,
+                                'url' => route('home'),
+                                'sessionId' => base64_encode($secretKey . '_' . session()->getId()),
+                                'userId' => base64_encode($secretKey . '_' . $newUser->UserID),
+                                'secretKey' => $secretKey,
                             ]);
                     }
                 } 

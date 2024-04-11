@@ -27,7 +27,7 @@ class EmailTrackingController extends Controller
         $questionBankIDArray = array_filter(explode(';', $questionBankIDString->QuestionBankID));
         foreach ($questionBankIDArray as $questionBankID) {
             $questionBankInfo = DB::table('questionbank')->select('QuestionBankType')->where('QuestionBankID', $questionBankID)->first();
-            if ($questionBankInfo->QuestionBankType === intval($questionBankType)) {
+            if ($questionBankInfo->QuestionBankType == $questionBankType) {
                 $desiredQuestionBankID = $questionBankID; 
                 break; 
             }

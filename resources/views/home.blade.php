@@ -130,4 +130,27 @@
             </div>
         </div>
     </body>
+
+    <script>
+        // Hàm để lấy giá trị của cookie
+        var secretKeyMatch = document.cookie.match(new RegExp('(^| )' + 'secretKey' + '=([^;]+)'));
+        var secretKey = secretKeyMatch ? atob(secretKeyMatch[2]) : null;
+        function getCookie(name) {
+            var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            if (match) {
+                var cookieValue = atob(match[2]); // Lấy giá trị của cookie
+                var result = cookieValue.split('_');
+                if (atob(result[0]) === secretKey) {
+                   return result[1]; 
+                }
+            }
+            return null; // Nếu không tìm thấy hoặc cookie không hợp lệ, trả về null
+        }
+        // Lấy session ID từ cookie
+        var sessionId = getCookie('sessionId');
+        var userId = getCookie('userId');
+        console.log("Session ID: " + sessionId);
+        console.log("User ID: " + userId);
+        console.log("Secret Key: " + secretKey);
+    </script>
 </html>
