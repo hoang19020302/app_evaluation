@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cookie;
 use App\Enums\ServiceStatus;
 use stdClass;
 
@@ -49,7 +50,7 @@ class FacebookController extends Controller
             // Khi user đăng nhập bằng facebook
             case 'login':
                 $user = DB::table('user')
-                        ->select('UserID')
+                        ->select('UserID', 'UserName', 'FullName')
                         ->where('UserName', $email)
                         ->first();
                 if ($user) {
@@ -63,11 +64,19 @@ class FacebookController extends Controller
                         'title' => 'Success!',
                         'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
                         'modifier' => 'success', 
-                        'url' => route('home'),
-                        'sessionId' => session()->getId(),
-                        'secretKey' => $secretKey,
-                    ]);
-                } else {
+                        'url' => 'https://tomatch.me',
+                        'sessionId' => base64_encode($secretKey . '_' . session()->getId()),
+                        'userId' => base64_encode($secretKey . '_' . $user->UserID),
+                        'userName' => $secretKey . '_' . $user->UserName,
+                        'fullName' => $secretKey . '_' . $user->FullName,
+                        'secretKey' => $secretKey
+                    ])
+                    ->withCookie(cookie()->forever('secretKey', $secretKey, null, null, null, true, true, 'None'))
+                    ->withCookie(cookie()->forever('sessionId', base64_encode($secretKey . '_' . session()->getId()), null, null, null, true, true, 'None'))
+                    ->withCookie(cookie()->forever('userId', base64_encode($secretKey . '_' . $user->UserID), null, null, null, true, true, 'None'))
+                    ->withCookie(cookie()->forever('userName', $secretKey . '_' . $user->UserName, null, null, null, true, true, 'None'))
+                    ->withCookie(cookie()->forever('fullName', $secretKey . '_' . $user->FullName, null, null, null, true, true, 'None'));
+
                     //Lưu thông tin user mới vào csdl
                     $appPassword = Str::random(6);
                     DB::table('user')
@@ -99,8 +108,11 @@ class FacebookController extends Controller
                             'title' => 'Success!',
                             'message' => 'Đăng nhập người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào email tài khoản Facebook của bạn.Vui lòng kiểm tra email để xem chi tiết.',
                             'modifier' => 'success', 
-                            'url' => route('home'),
+                            'url' => 'https://tiktok.local',
                             'sessionId' => session()->getId(),
+                            'userId' => base64_encode($secretKey . '_' . $newUser->UserID),
+                            'userName' => $secretKey . '_' . $newUser->UserName,
+                            'fullName' => $secretKey . '_' . $newUser->FullName,
                             'secretKey' => $secretKey,
                         ]);
                     }

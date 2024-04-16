@@ -1,4 +1,15 @@
 /* CSS rieng */
+#alertNotify {
+  height: 100vh;
+  width: 100%;
+  background-color: rgba(240, 240, 240, 0.5);
+}
+
+#alertMessage {
+  color: #a0aec0;
+  font-size: 1.5rem;
+  font-weight: 400;
+}
 /* Trong file CSS */
 /* Cho máy tính */
 /* Bootstrap */

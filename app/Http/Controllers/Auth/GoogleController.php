@@ -49,7 +49,7 @@ class GoogleController extends Controller
             // Khi user đăng nhập bằng google
             case 'login':
                 $user = DB::table('user')
-                        ->select('UserID', 'CreatedDate')
+                        ->select('UserID', 'CreatedDate', 'UserName', 'FullName')
                         ->where('UserName', $email)
                         ->first();
                 if ($user) {
@@ -61,6 +61,7 @@ class GoogleController extends Controller
                     $userData = new stdClass();
                     $userData->userID = $user->UserID;
                     $userData->userName = $email;
+                    $userData->fullName = $user->FullName;
                     $userData->method = 'google';
                     $userData->type = 'existing';
                     $userData->sessionID = session()->getId();
@@ -82,9 +83,11 @@ class GoogleController extends Controller
                         'title' => 'Success!',
                         'message' => 'Đăng nhập thành công. Chào mừng bạn đến với tomatch.me!',
                         'modifier' => 'success', 
-                        'url' => route('home'),
+                        'url' => 'http://127.0.0.1:5500/src/home.html',
                         'sessionId' => base64_encode($secretKey . '_' . session()->getId()),
                         'userId' => base64_encode($secretKey . '_' . $user->UserID),
+                        'userName' => $secretKey . '_' . $user->UserName,
+                        'fullName' => $secretKey . '_' . $user->FullName,
                         'secretKey' => $secretKey,
                     ]);
                 } else {
@@ -138,9 +141,11 @@ class GoogleController extends Controller
                                 'title' => 'Success!',
                                 'message' => 'Đăng nhập với người dùng mới thành công! Chúng tôi sẽ gửi thông tin đăng nhập cùng với mật khẩu truy cập vào tomatch.me vào gmail của bạn.Vui lòng kiểm tra gmail để xem chi tiết.',
                                 'modifier' => 'success', 
-                                'url' => route('home'),
+                                'url' => 'http://127.0.0.1:5500/src/home.html',
                                 'sessionId' => base64_encode($secretKey . '_' . session()->getId()),
                                 'userId' => base64_encode($secretKey . '_' . $newUser->UserID),
+                                'userName' => $secretKey . '_' . $newUser->UserName,
+                                'fullName' => $secretKey . '_' . $newUser->FullName,
                                 'secretKey' => $secretKey,
                             ]);
                     }

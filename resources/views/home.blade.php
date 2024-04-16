@@ -135,7 +135,7 @@
         // Hàm để lấy giá trị của cookie
         var secretKeyMatch = document.cookie.match(new RegExp('(^| )' + 'secretKey' + '=([^;]+)'));
         var secretKey = secretKeyMatch ? atob(secretKeyMatch[2]) : null;
-        function getCookie(name) {
+        function getCookieBase64(name) {
             var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
             if (match) {
                 var cookieValue = atob(match[2]); // Lấy giá trị của cookie
@@ -146,11 +146,27 @@
             }
             return null; // Nếu không tìm thấy hoặc cookie không hợp lệ, trả về null
         }
+
+        function getCookieUtf8(name) {
+            var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            if (match) {
+                var cookieValue = match[2]; // Lấy giá trị của cookie
+                var result = cookieValue.split('_');
+                if (atob(result[0]) === secretKey) {
+                   return result[1]; 
+                }
+            }
+            return null; // Nếu không tìm thấy hoặc cookie không hợp lệ, trả về null
+        }
         // Lấy session ID từ cookie
-        var sessionId = getCookie('sessionId');
-        var userId = getCookie('userId');
+        var sessionId = getCookieBase64('sessionId');
+        var userId = getCookieBase64('userId');
+        var userName = getCookieUtf8('userName');
+        var fullName = getCookieUtf8('fullName');
         console.log("Session ID: " + sessionId);
         console.log("User ID: " + userId);
+        console.log("User Name: " + userName);
+        console.log("Full Name: " + fullName);
         console.log("Secret Key: " + secretKey);
     </script>
 </html>

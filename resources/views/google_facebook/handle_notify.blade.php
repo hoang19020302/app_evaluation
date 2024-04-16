@@ -5,23 +5,13 @@
         <div class="col-md-10 col-12">
             @if(session('state'))
                 <title>{{session('title')}}</title>
-                <div class="alert alert-{{session('modifier')}} mt-3" role="alert" id="custom-alert">
-                    <a type="button" class="close" aria-label="Close" href="{{session('url')}}">
-                        <span aria-hidden="true">&times;</span>
-                    </a>
-                    <h4 class="alert-heading text-center text-xl text-{{session('modifier')}}">{{session('title')}}</h4>
-                    <p class="mb-0 text-center text-xl text-{{session('modifier')}}">{{session('message')}}</p>
-                    <hr>
-                    <p class="mb-0 text-center text-xl text-secondary">Bạn có thể tắt thông báo hoặc trang web sẽ tự chuyển hướng sau 3s.</p>
+                <div id="alertNotify" class="d-flex justify-content-center align-items-center""> 
+                    <h3 id="alertMessage" class="text-center">{{session('title')}} | {{session('modifier')}}</h3>
                 </div>
             @else
-                <title>Lỗi!</title>
-                    <div class="alert alert-danger" role="alert" id="custom-alert">
-                    <a type="button" class="close" aria-label="Close" href="http://127.0.0.1:3000/login">
-                        <span aria-hidden="true">&times;</span>
-                    </a>
-                    <h4 class="alert-heading text-center text-xl text-danger">404</h4>
-                    <p class="mb-0 text-center text-xl text-danger">Bạn vui lòng truy cập vào <a href="http://127.0.0.1:3000/login" class="alert-link">đây</a> để tiếp tục.</p>
+                <title>400</title>
+                <div class="d-flex justify-content-center align-items-center" id="alertNotify"> 
+                    <h3 class="text-center" id="alertMessage">404 | Page Not Found</h3>
                 </div>
             @endif
         </div>
@@ -29,25 +19,49 @@
 </div>
 
 <script>
-    @if(session('state'))
-        @php
-            $url = session('url');
-            $sessionId = session('sessionId');
-            $userId = session('userId');
-            $secretKey = session('secretKey');
-        @endphp
-        @if($sessionId && $userId && $secretKey && $url)
-            document.cookie = "sessionId={{ $sessionId }}; path=/";
-            document.cookie = "userId={{ $userId }}; path=/";
-            document.cookie = "secretKey={{ $secretKey }}; path=/";
-        @endif
-        setTimeout(function() {
-            window.location.href = "{{ $url }}";//"{{ $url }}?{{ $sessionId }}&{{ $userId }}";
-        }, 3000);
-    @else
-        setTimeout(function() {
-            //window.location.href = "http://127.0.0.1:3000/login";
-        }, 3000);
-    @endif
+        var alertVisible = true;
+        @if(session('state') && session('message') && session('title'))
+            @php
+                $url = session('url');
+                $sessionId = session('sessionId');
+                $userId = session('userId');
+                $userName = session('userName');
+                $fullName = session('fullName');
+                $secretKey = session('secretKey');
+                $message = session('message');
+                $title = session('title');
+            @endphp
 
+            @if($sessionId && $userId && $url && $secretKey)
+                document.cookie = "sessionId={{ $sessionId }}; domain=127.0.0.1; path=/;";
+                document.cookie = "userId={{ $userId }}; domain=127.0.0.1; path=/;";
+                document.cookie = "userName={{ $userName }}; domain=127.0.0.1; path=/;";
+                document.cookie = "fullName={{ $fullName }}; domain=127.0.0.1; path=/;";
+                document.cookie = "secretKey={{ $secretKey }}; domain=127.0.0.1; path=/;";
+            @endif
+
+            setTimeout(function() {
+                if (alertVisible) {
+                    alert("{{ $title }} - {{ $message }}");
+                }
+                alertVisible = false;
+                window.location.href = "{{ $url }}";
+            }, 1);
+            window.addEventListener("click", function() {
+                alertVisible = false;
+                window.location.href = "{{ $url }}";
+            });
+        @else
+            setTimeout(function() {
+                if (alertVisible) {
+                    alert("404 - Page Not Found");
+                }
+                alertVisible = false;
+                window.location.href = "http://localhost:8000";
+            }, 1);
+            window.addEventListener("click", function() {
+                alertVisible = false;
+                window.location.href = "http://localhost:8000";
+            });
+        @endif
 </script>

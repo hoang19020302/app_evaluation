@@ -2,7 +2,7 @@
 
 # Dừng tất cả các tiến trình Laravel đang chạy
 pkill -f "php artisan" 
-wait
+wait 
 
 #Tạo bảng trong database
 php artisan migrate:reset && \
