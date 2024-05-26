@@ -32,4 +32,3 @@ RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 EXPOSE 8000
 
 # Khởi động Nginx và PHP-FPM
-CMD ["bash", "-c", "nginx -g 'daemon off;' && php-fpm"]
