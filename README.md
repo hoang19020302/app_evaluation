@@ -12,7 +12,7 @@ Trước khi bắt đầu, hãy đảm bảo rằng bạn đã cài đặt các 
 ## Cấu Trúc Dự Án
 
 Dưới đây là cấu trúc của dự án:
-.
+
 ├── docker-compose.yml
 ├── Dockerfile
 ├── .env
@@ -97,8 +97,3 @@ css
 Sao chép mã
 
 Hãy đảm bảo rằng bạn điều chỉnh các URL, tên kho lưu trữ và các phần cụ thể của dự án cho phù hợp với dự án của bạn.
-
-├── docker-compose.yml
-├── Dockerfile
-├── .env
-└── ... (các tệp dự án Laravel khác)
