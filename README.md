@@ -1,5 +1,4 @@
-1. Chuẩn bị
-# Hướng Dẫn Cài Đặt Laravel API Trên Docker
+# Hướng Dẫn Cài Đặt Laravel API
 
 Hướng dẫn này sẽ giúp bạn cài đặt và chạy dự án Laravel API sử dụng Docker Compose. Hãy làm theo các bước dưới đây để thiết lập mọi thứ.
 
@@ -13,11 +12,12 @@ Trước khi bắt đầu, hãy đảm bảo rằng bạn đã cài đặt các 
 ## Cấu Trúc Dự Án
 
 Dưới đây là cấu trúc của dự án:
-
+.
 ├── docker-compose.yml
 ├── Dockerfile
 ├── .env
 └── ... (các tệp dự án Laravel khác)
+
 
 ## Các Bước Thiết Lập
 
@@ -28,12 +28,11 @@ Clone repository về máy của bạn:
 ```bash
 git clone https://github.com/your-username/your-repo.git
 cd your-repo
-
 2. Tạo và Cấu Hình Tệp .env
 Tạo tệp .env trong thư mục gốc của dự án. Bạn có thể sử dụng tệp .env.example làm mẫu:
-
+bash
+Sao chép mã
 cp .env.example .env
-
 Chỉnh sửa tệp .env để phù hợp với cấu hình của bạn. Hãy chắc chắn thiết lập các biến sau:
 
 DB_DATABASE
@@ -46,9 +45,11 @@ QUEUE_OPTIONS
 NUM_PROCS
 PMA_ARBITRARY
 DB_HOST
-
 3. Build và Khởi Động Các Container
 Sử dụng Docker Compose để build và khởi động các container:
+
+bash
+Sao chép mã
 docker-compose up --build -d
 Lệnh này sẽ build các Docker image và khởi động các container ở chế độ nền (detached mode).
 
@@ -56,17 +57,28 @@ Lệnh này sẽ build các Docker image và khởi động các container ở c
 Laravel API: Truy cập Laravel API tại http://localhost:8000.
 phpMyAdmin: Truy cập phpMyAdmin tại http://localhost:8080. Sử dụng thông tin đăng nhập database được định nghĩa trong tệp .env.
 Redis: Redis chạy trên cổng 6379.
-
 5. Chạy Migrations và Seeders
 Sau khi các container đã được khởi động, bạn cần chạy các lệnh migrations và seeders cho database:
-docker-compose exec api php artisan migrate --seed
 
+bash
+Sao chép mã
+docker-compose exec api php artisan migrate --seed
 6. Quản Lý Các Container
 Để xem log của một dịch vụ cụ thể, sử dụng lệnh:
-docker-compose logs <service_name>
-Để dừng và xóa các container, sử dụng lệnh:
-docker-compose down
 
+bash
+Sao chép mã
+docker-compose logs <service_name>
+Ví dụ, để xem log của dịch vụ api:
+
+bash
+Sao chép mã
+docker-compose logs api
+Để dừng và xóa các container, sử dụng lệnh:
+
+bash
+Sao chép mã
+docker-compose down
 Thông Tin Bổ Sung
 Supervisor: Container supervisor quản lý các hàng đợi Laravel và chạy các worker hàng đợi.
 MariaDB: Container MariaDB hoạt động như cơ sở dữ liệu MySQL cho ứng dụng Laravel.
@@ -81,5 +93,7 @@ Nếu bạn gặp bất kỳ vấn đề nào, hãy mở một issue trên repos
 Kết Luận
 Bạn đã có một API Laravel hoạt động hoàn chỉnh bên trong các container Docker. Hãy tận hưởng việc xây dựng ứng dụng của bạn!
 
-Hãy đảm bảo rằng bạn điều chỉnh các URL, tên kho lưu trữ và các phần cụ thể của dự án cho phù hợp với dự án của bạn.
+css
+Sao chép mã
 
+Hãy đảm bảo rằng bạn điều chỉnh các URL, tên kho lưu trữ và các phần cụ thể của dự án cho phù hợp với dự án của bạn.
