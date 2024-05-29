@@ -12,11 +12,12 @@ Trước khi bắt đầu, hãy đảm bảo rằng bạn đã cài đặt các 
 ## Cấu Trúc Dự Án
 
 Dưới đây là cấu trúc của dự án:
-
+```bash
 ├── docker-compose.yml
 ├── Dockerfile
 ├── .env
 └── ... (các tệp dự án Laravel khác)
+```
 
 
 ## Các Bước Thiết Lập
