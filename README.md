@@ -1,64 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+1. Chuẩn bị
+# Hướng Dẫn Cài Đặt Laravel API Trên Docker
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Hướng dẫn này sẽ giúp bạn cài đặt và chạy dự án Laravel API sử dụng Docker Compose. Hãy làm theo các bước dưới đây để thiết lập mọi thứ.
 
-## About Laravel
+## Yêu Cầu Trước
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Trước khi bắt đầu, hãy đảm bảo rằng bạn đã cài đặt các phần mềm sau trên hệ thống của mình:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Cấu Trúc Dự Án
 
-## Learning Laravel
+Dưới đây là cấu trúc của dự án:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+├── docker-compose.yml
+├── Dockerfile
+├── .env
+└── ... (các tệp dự án Laravel khác)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Các Bước Thiết Lập
 
-## Laravel Sponsors
+### 1. Clone Repository
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Clone repository về máy của bạn:
 
-### Premium Partners
+```bash
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+2. Tạo và Cấu Hình Tệp .env
+Tạo tệp .env trong thư mục gốc của dự án. Bạn có thể sử dụng tệp .env.example làm mẫu:
 
-## Contributing
+cp .env.example .env
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Chỉnh sửa tệp .env để phù hợp với cấu hình của bạn. Hãy chắc chắn thiết lập các biến sau:
 
-## Code of Conduct
+DB_DATABASE
+DB_USERNAME
+DB_PASSWORD
+DB_PASSWORD_ROOT
+APP_ROOT
+QUEUE_CONNECTION
+QUEUE_OPTIONS
+NUM_PROCS
+PMA_ARBITRARY
+DB_HOST
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3. Build và Khởi Động Các Container
+Sử dụng Docker Compose để build và khởi động các container:
+docker-compose up --build -d
+Lệnh này sẽ build các Docker image và khởi động các container ở chế độ nền (detached mode).
 
-## Security Vulnerabilities
+4. Truy Cập Các Dịch Vụ
+Laravel API: Truy cập Laravel API tại http://localhost:8000.
+phpMyAdmin: Truy cập phpMyAdmin tại http://localhost:8080. Sử dụng thông tin đăng nhập database được định nghĩa trong tệp .env.
+Redis: Redis chạy trên cổng 6379.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+5. Chạy Migrations và Seeders
+Sau khi các container đã được khởi động, bạn cần chạy các lệnh migrations và seeders cho database:
+docker-compose exec api php artisan migrate --seed
 
-## License
+6. Quản Lý Các Container
+Để xem log của một dịch vụ cụ thể, sử dụng lệnh:
+docker-compose logs <service_name>
+Để dừng và xóa các container, sử dụng lệnh:
+docker-compose down
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Thông Tin Bổ Sung
+Supervisor: Container supervisor quản lý các hàng đợi Laravel và chạy các worker hàng đợi.
+MariaDB: Container MariaDB hoạt động như cơ sở dữ liệu MySQL cho ứng dụng Laravel.
+Nginx: Container Nginx hoạt động như máy chủ web cho ứng dụng Laravel.
+Redis: Container Redis hoạt động như một kho lưu trữ dữ liệu trong bộ nhớ, được Laravel sử dụng cho caching và hàng đợi.
+Khắc Phục Sự Cố
+Đảm bảo Docker và Docker Compose được cài đặt và chạy đúng cách.
+Kiểm tra tệp .env để đảm bảo cấu hình chính xác.
+Xác minh rằng mạng Docker laravel đã được tạo và khả dụng.
+Nếu bạn gặp bất kỳ vấn đề nào, hãy mở một issue trên repository hoặc liên hệ với người quản lý.
+
+Kết Luận
+Bạn đã có một API Laravel hoạt động hoàn chỉnh bên trong các container Docker. Hãy tận hưởng việc xây dựng ứng dụng của bạn!
+
+Hãy đảm bảo rằng bạn điều chỉnh các URL, tên kho lưu trữ và các phần cụ thể của dự án cho phù hợp với dự án của bạn.
+
