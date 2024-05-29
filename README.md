@@ -97,3 +97,8 @@ css
 Sao chép mã
 
 Hãy đảm bảo rằng bạn điều chỉnh các URL, tên kho lưu trữ và các phần cụ thể của dự án cho phù hợp với dự án của bạn.
+
+├── docker-compose.yml
+├── Dockerfile
+├── .env
+└── ... (các tệp dự án Laravel khác)
